@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-only
 $ErrorActionPreference = 'Stop'
 $projectRoot = $PSScriptRoot
 $vswherePath = 'C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe'

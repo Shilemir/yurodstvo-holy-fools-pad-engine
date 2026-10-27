@@ -32,3 +32,14 @@ This experimental instrument is still under development; no universal compatibil
 or fitness warranty is offered. See the included licensing/artwork notices.
 
 To uninstall, close the app and remove its extracted folder. No installer runs.
+LICENSING AND SOURCE
+Free and open-source software: GNU AGPL v3.0 only (AGPL-3.0-only).
+You may use, study, modify and redistribute it, including commercially, subject
+to the licence. Include Corresponding Source and notices when conveying binaries;
+mark your modifications. Modified remote network versions have section 13 source
+offer obligations. See LICENSES/LICENSE.txt and LICENSES/THIRD_PARTY.md.
+Complete source with JUCE 9.0.4 is available at no charge from the same release:
+https://github.com/Shilemir/yurodstvo-holy-fools-pad-engine/releases/tag/v0.8.0-agpl
+See SOURCE-CODE.txt and the Corresponding-Source.zip asset for offline building.
+The unmodified font stays OFL-1.1. Only the official AI PNG is dedicated under
+CC0-1.0, to the extent of the owner's rights; see LICENSES/ILLUSTRATION-NOTICE.txt.

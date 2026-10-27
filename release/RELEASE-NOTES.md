@@ -2,7 +2,7 @@
 
 An experimental synthesizer for ambient music, drones and slowly evolving sound
 textures, inspired by Orthodox iconography and the tradition of holy foolishness.
-This hobby/noncommercial project is under active development and this release
+This open-source project is under active development and this release
 is marked **Pre-release**.
 
 ## Features
@@ -52,16 +52,38 @@ working audio output. Built/tested on Windows 11; the owner reports previous
 Ableton Live 11 operation. Other computers, Windows 10/ARM and all other DAWs
 have not been independently validated. Binaries are unsigned.
 
-362 automated checks passed on the clean build and again on the VST3 extracted
-from its ZIP. The extracted Standalone process started and reported its window;
+361 automated checks passed on the AGPL clean build and again on the VST3 extracted
+from its ZIP. The historical 0.6 comparison is skipped in public builds (the earlier private build passed 362). The previous pre-conversion Standalone process started and reported its window;
 full interactive/audio smoke testing was not completed. MSVC runtime is statically
 linked; normal Windows system libraries are required. No runtime installer is bundled.
 
-## Source and licences
+## Open-source conversion: v0.8.0-agpl
 
-The repository is a reviewed public 0.8.0 snapshot. Original private development
-history is retained locally, without rewriting commits or publishing old reference
-artwork. The owner's application code is source-available **without an open-source
-licence**. Third-party licences remain separate. The official illustration is
-owner-authorized AI artwork, not a blanket public-domain declaration.
-See LICENSE.txt, THIRD_PARTY.md and the notices included with both downloads.
+The original application is now **GNU AGPL version 3 only (AGPL-3.0-only)**,
+including the original 0.8.0 code. You may use, study, modify and redistribute it,
+including commercially, under that licence. JUCE 9.0.4 uses its AGPLv3 option;
+previous Starter/source-available notices are superseded for this distribution.
+Third-party copyrights, SDK licences and the font's OFL-1.1 remain intact.
+
+This is a licensing, build-portability and documentation revision of application
+**0.8.0**. The original v0.8.0 tag is preserved; **v0.8.0-agpl** identifies the
+open-source source revision. DSP, UI, plugin identity and MIDI mappings are
+unchanged. Windows binaries have been rebuilt from the open-source revision.
+ZIPs and SHA-256 files have been regenerated with complete legal/source notices.
+
+Download **YURODSTVO-Holy-Fools-Pad-Engine-v0.8.0-AGPL-Corresponding-Source.zip**
+and its checksum from Assets for the complete Corresponding Source, including
+unmodified JUCE 9.0.4 and its vendored dependencies. It builds offline with the
+tools in BUILDING.md. GitHub's automatic source archives contain the project
+only; their CMake configuration fetches pinned JUCE or accepts JUCE_PATH.
+
+When conveying binaries, provide complete Corresponding Source under AGPLv3
+section 6, preserve notices and identify modifications. Modified covered works
+must remain AGPLv3; modified versions used for remote network interaction must
+provide the section 13 source offer. There is no noncommercial restriction.
+Contributions are welcome. See LICENSE.txt, COPYRIGHT.md and THIRD_PARTY.md.
+
+Only the owner's applicable rights in assets/yurodstvo_icon.png are dedicated
+under CC0-1.0. This AI illustration carries no claim of exclusive copyright or
+guaranteed third-party-rights clearance. Font, libraries and the full interface
+screenshot are excluded from CC0; see assets/ILLUSTRATION-NOTICE.txt.

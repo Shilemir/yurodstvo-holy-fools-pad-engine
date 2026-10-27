@@ -2,7 +2,8 @@
 
 An experimental synthesizer for ambient music, drones and slowly evolving sound
 textures, inspired by Orthodox iconography and the tradition of holy foolishness.
-Hobby/noncommercial project. Current application version: **0.8.0**.
+Open-source software under **GNU AGPL v3.0 only (AGPL-3.0-only)**.
+Current application version: **0.8.0**; open-source distribution: **v0.8.0-agpl**.
 
 ![YURODSTVO interface](docs/images/interface.png)
 
@@ -10,7 +11,7 @@ The screenshot is rendered from the real JUCE editor with demonstration values.
 
 ## Download
 
-Open this repository's **Releases** section and choose the **v0.8.0 prerelease**.
+Open this repository's **Releases** section and choose the **v0.8.0-agpl prerelease**.
 Download the Windows-VST3 or Windows-Standalone ZIP under **Assets**.
 GitHub's automatic Source code archives are not ready-to-run binaries.
 End users do not need JUCE, Visual Studio, CMake or compilation.
@@ -110,28 +111,57 @@ The public repository begins with a reviewed 0.8.0 snapshot. The owner retains t
 complete, unmodified development history locally; former external reference images
 and that history are not published here. No application DSP was changed for release.
 
-Dependencies: JUCE 9.0.4, CMake supporting your Visual Studio generator and MSVC.
-The tested toolchain is Visual Studio2026/MSVC19.51. Obtain JUCE separately under
-terms applicable to your use; it is not vendored here. Set JUCE_PATH to its folder:
+Dependencies: CMake 3.22 or newer (new enough for your chosen generator), Git and
+Visual Studio C++ build tools with a Windows SDK. The tested toolchain is Visual
+Studio 2026/MSVC 19.51. CMake fetches official **JUCE 9.0.4**, verifies commit
+`3fb5cbc0340758596dac39f7c8de47d562b4896e`, and uses its AGPLv3 option.
+JUCE is not vendored in this Git repository. Internet access is needed on the
+first configure unless you use the complete source archive or supply JUCE_PATH.
 
 ```powershell
-cmake -S . -B build -G "Visual Studio 18 2026" -A x64 -DJUCE_PATH="C:/path/to/JUCE"
+cmake -S . -B build -G "Visual Studio 18 2026" -A x64
 cmake --build build --config Release --target Yurodstvo_Standalone Yurodstvo_VST3 YurodstvoTests --parallel 4
 ctest --test-dir build -C Release --output-on-failure
 ```
 
 `release/build-distribution.ps1` makes a fresh Release x64 build with static MSVC
 runtime, tests it and packages both formats. No tools are installed by the scripts.
-See TEST_REPORT.md for technical validation and its limits.
+For an offline build, download the **Corresponding-Source.zip** asset from the
+same release: it contains this project and the exact JUCE source, discovered
+automatically at `dependencies/JUCE`. Alternatively configure with
+`-DJUCE_PATH="C:/path/to/JUCE-9.0.4"` using an unmodified official checkout.
+See [BUILDING.md](BUILDING.md) for tools, generators and packaging instructions,
+and TEST_REPORT.md for technical validation and its limits.
 
 ## Licensing and artwork
 
-**Source-available, not open source:** the owner has not granted a general
-open-source licence to the application code. See LICENSE.txt. JUCE and other
-third-party components retain their own licences; see THIRD_PARTY.md and the
-notices inside the binary packages.
+YURODSTVO — Holy Fool's Pad Engine is free and open-source software licensed
+under the **GNU Affero General Public License, version 3 only**. You may download
+and use the instrument free of charge, study its source, modify it, redistribute
+it and your own versions under the AGPLv3, and contribute improvements. Commercial
+use and sale are allowed; there is no noncommercial-use restriction.
 
-The owner confirms JUCE 9 Starter use and authorizes distributing the supplied
-AI-generated illustration with the project. It is an interpretation inspired by
-historical iconography, not a public-domain claim. See assets/ILLUSTRATION-NOTICE.txt.
-The font is unmodified Ruslan Display under SIL OFL 1.1.
+When conveying binaries, provide recipients with the complete Corresponding
+Source under the AGPLv3, including your modifications and build/install scripts,
+using a method allowed by section 6. Preserve copyright and licence notices,
+identify changes and dates, and license covered modified works under AGPLv3.
+If you modify the program and let users interact with it remotely over a network,
+section 13 requires a prominent opportunity for those users to obtain that
+version's Corresponding Source at no charge. Merely using the local instrument
+does not require publishing private music or private modifications. Audio you
+create is not automatically licensed under AGPLv3 by using this synthesizer.
+
+Read [LICENSE.txt](LICENSE.txt), [COPYRIGHT.md](COPYRIGHT.md) and
+[THIRD_PARTY.md](THIRD_PARTY.md). JUCE is used under its open-source AGPLv3 option,
+not the JUCE Starter/commercial path. Third-party terms remain intact, including
+Ruslan Display's SIL OFL 1.1. No proprietary-host linking exception is granted
+for JUCE; see the dependency audit for the scope of this distribution review.
+
+The owner's rights, if any, in `assets/yurodstvo_icon.png` are dedicated under
+CC0 1.0. AI authorship and third-party-rights limitations are documented in
+[assets/ILLUSTRATION-NOTICE.txt](assets/ILLUSTRATION-NOTICE.txt). CC0 does not apply
+to the font, third-party code or the entire interface screenshot.
+
+Contributions are welcome through issues and pull requests. Submit original
+application-code contributions under AGPL-3.0-only and retain existing notices;
+no copyright assignment is requested. See [CONTRIBUTING.md](CONTRIBUTING.md).

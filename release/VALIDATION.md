@@ -1,15 +1,15 @@
 # Release validation — 0.8.0
 
-A fresh Windows x64 Release build was made with JUCE 9.0.4 and Visual Studio
+AGPL distribution validation, 2026-10-27. A fresh Windows x64 Release build was made with official JUCE 9.0.4 and Visual Studio
 2026/MSVC 19.51 in a new build directory. Application DSP, MIDI behaviour and
 plugin identity were not changed for publication.
 
 ## Results
 
 - Standalone EXE, VST3 and technical-test targets built successfully.
-- Clean-build CTest: **362 checks passed**, zero failures.
+- Clean-build CTest: **361 checks passed**, zero failures.
 - The VST3 ZIP was extracted into a new directory and that extracted plugin
-  passed the same **362 checks**, zero failures.
+  passed the same **361 checks**, zero failures.
 - Both ZIPs preserve every staged file byte-for-byte; SHA-256 sidecars accompany
   the archives. ZIP paths use forward slashes and retain the complete VST3 tree.
 - PE headers identify AMD64/x64. ProductName and ProductVersion are correct.
@@ -20,7 +20,7 @@ plugin identity were not changed for publication.
   normal Windows libraries and no external VCRUNTIME/MSVCP runtime DLLs.
 - No application source, PDB, OBJ, LIB, EXP, compiler, JUCE checkout, driver or
   runtime installer is included in either binary ZIP. Licence notices are included.
-- The extracted Standalone process started and exposed a correctly titled window.
+- The earlier pre-conversion Standalone process started and exposed a correctly titled window. No new interactive/audio launch test is claimed for this rebuild.
   The subsequent visual/interactivity smoke test was not completed. This is not
   a claim of successful audio-device setup or listening validation.
 - The repository screenshot is rendered from the real JUCE editor, not a mockup.
@@ -40,7 +40,7 @@ concurrent producer/consumer release safety. These are automated JUCE callbacks
 and offline audio tests, not physical MiniLab or Ableton interaction tests.
 
 The level-comparison check uses the retained private 0.6 binary when available.
-A fresh public clone without that old binary skips that one comparison; the old
+This clean public build skipped that one comparison (361 checks versus the earlier 362); the old
 binary is not needed to build or use the current instrument.
 
 ## Limits
@@ -62,5 +62,8 @@ retained locally without rewriting commits.
 A pattern scan of the private text history found no matching GitHub/API/private-key
 patterns; the public snapshot is scanned separately before publication. Such scans
 are not a mathematical guarantee that every possible secret format is detectable.
-The author chose source availability without an open-source licence. See LICENSE.txt,
+The application is now AGPL-3.0-only under the owner's grant. See LICENSE.txt,
 THIRD_PARTY.md and assets/ILLUSTRATION-NOTICE.txt.
+Portable CMake configuration without JUCE_PATH also succeeded, fetching and
+verifying the pinned official JUCE revision. Full Corresponding Source is
+provided separately from the binary ZIPs, including JUCE and all project files.

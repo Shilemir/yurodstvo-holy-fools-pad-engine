@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-only
 param([Parameter(Mandatory=$true)][string]$BuildDirectory)
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot -Parent
@@ -21,7 +22,7 @@ $dumpbin = Join-Path $toolset.FullName 'bin\Hostx64\x64\dumpbin.exe'
 $dependencies = & $dumpbin /DEPENDENTS $binary | Out-String
 if ($LASTEXITCODE) { throw 'Dependency inspection failed.' }
 if ($dependencies -match '(?i)\b(?:VCRUNTIME|MSVCP|MSVCR|CONCRT|ucrtbased)[^\s]*\.dll') { throw 'Unexpected external MSVC runtime dependency.' }
-$destination = Join-Path $projectRoot "artifacts\distribution\$version"
+$destination = Join-Path $projectRoot "artifacts\distribution\$version-agpl"
 $runId = [guid]::NewGuid().ToString('N').Substring(0,12)
 $stage = Join-Path $destination "staging-$runId"
 $licences = Join-Path $stage 'LICENSES'
@@ -29,7 +30,8 @@ New-Item -ItemType Directory -Force -Path $licences | Out-Null
 Copy-Item -LiteralPath $bundle -Destination $stage -Recurse
 $readme = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'README.txt')).Replace('@VERSION@',$version)
 [IO.File]::WriteAllText((Join-Path $stage 'README.txt'),$readme)
-Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'DISTRIBUTION-STATUS.txt'),(Join-Path $projectRoot 'LICENSE.txt'),(Join-Path $projectRoot 'THIRD_PARTY.md'),(Join-Path $projectRoot 'assets\ILLUSTRATION-NOTICE.txt') -Destination $licences
+Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'DISTRIBUTION-STATUS.txt'),(Join-Path $projectRoot 'LICENSE.txt'),(Join-Path $projectRoot 'COPYRIGHT.md'),(Join-Path $projectRoot 'THIRD_PARTY.md'),(Join-Path $projectRoot 'assets\ILLUSTRATION-NOTICE.txt'),(Join-Path $projectRoot 'LICENSES\CC0-1.0.txt'),(Join-Path $PSScriptRoot 'SOURCE-CODE.txt') -Destination $licences
+Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'SOURCE-CODE.txt') -Destination $stage
 $juce = [regex]::Match([IO.File]::ReadAllText((Join-Path $BuildDirectory 'CMakeCache.txt')),'(?m)^JUCE_PATH:PATH=(.+)$').Groups[1].Value.Trim()
 $juce = [IO.Path]::GetFullPath($juce)
 $notices = @{
@@ -53,6 +55,21 @@ $notices = @{
     'Opusenc.txt' = (Join-Path $juce 'modules\juce_audio_formats\codecs\opus\libopusenc\COPYING')
 }
 foreach ($entry in $notices.GetEnumerator()) { Copy-Item -LiteralPath $entry.Value -Destination (Join-Path $licences $entry.Key) }
+foreach ($sdkPart in @('base','pluginterfaces','public.sdk')) {
+    Copy-Item -LiteralPath (Join-Path $juce "modules\juce_audio_processors_headless\format_types\VST3_SDK\$sdkPart\LICENSE.txt") -Destination (Join-Path $licences "VST3-$sdkPart-MIT.txt")
+}
+$presonusNotices = Get-ChildItem -LiteralPath (Join-Path $juce 'modules\juce_audio_processors_headless\format_types\pslextensions') -File | ForEach-Object {
+    $text = [IO.File]::ReadAllText($_.FullName)
+    $end = $text.IndexOf('#ifndef')
+    if ($end -gt 0) { "File: $($_.Name)`r`n" + $text.Substring(0,$end) }
+}
+[IO.File]::WriteAllText((Join-Path $licences 'PreSonus-public-domain.txt'),($presonusNotices -join "`r`n"))
+Get-ChildItem -LiteralPath (Join-Path $juce 'modules\juce_audio_formats\codecs\opus') -Recurse -File | Where-Object {
+    $_.Name -match '^(PATENTS|LICENSE_PLEASE_READ|COPYRIGHT|AUTHORS)'
+} | ForEach-Object {
+    $noticeName = $_.FullName.Substring((Join-Path $juce 'modules\juce_audio_formats\codecs\opus').Length+1).Replace('\','-')
+    Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $licences ("Opus-"+$noticeName))
+}
 $jpegReadme = [IO.File]::ReadAllText((Join-Path $juce 'modules\juce_graphics\image_formats\jpglib\README'))
 $legal = [regex]::Match($jpegReadme,'(?ms)^LEGAL ISSUES\r?\n=+.*?(?=^REFERENCES\r?\n=+)').Value
 if (-not $legal) { throw 'JPEG licence section not found.' }
@@ -62,9 +79,11 @@ This software is based in part on the work of the Independent JPEG Group.
 SheenBidi copyright (C) 2014-2025 Muhammad Tayyab Akram; Apache License 2.0.
 The accompanying licence files reproduce third-party notices from JUCE 9.0.4.
 JUCE-inventory.spdx.json is the upstream framework inventory, not a claim that
-all listed optional components are linked into this plugin. No JUCE source is
-bundled here. The author confirms use of the JUCE 9 Starter EULA licence path.
-The owner authorizes the supplied AI illustration for this project. See ILLUSTRATION-NOTICE.txt.
+all listed optional components are linked into this plugin. JUCE is used under
+AGPL-3.0-only. Complete Corresponding Source, including JUCE, is available from
+the same release as these binaries; see SOURCE-CODE.txt. The application is
+AGPL-3.0-only. The font remains OFL-1.1; only the official PNG is dedicated under
+CC0-1.0 to the extent of the owner's rights. See ILLUSTRATION-NOTICE.txt.
 '@)
 if (-not ('EmbeddedReleaseAsset' -as [type])) {
     Add-Type -TypeDefinition @'
@@ -131,6 +150,7 @@ $appStage = Join-Path $destination "standalone-$runId"
 New-Item -ItemType Directory -Force -Path $appStage | Out-Null
 Copy-Item -LiteralPath $standalone -Destination $appStage
 Copy-Item -LiteralPath $licences -Destination $appStage -Recurse
+Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'SOURCE-CODE.txt') -Destination $appStage
 $appReadme = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'README-Standalone.txt')).Replace('@VERSION@',$version)
 [IO.File]::WriteAllText((Join-Path $appStage 'README.txt'),$appReadme)
 $app = New-VerifiedArchive $appStage 'Standalone'

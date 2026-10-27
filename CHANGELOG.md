@@ -1,3 +1,12 @@
+# Open-source distribution revision — 2026-10-27
+
+- Original application code relicensed to AGPL-3.0-only with the owner's grant.
+- JUCE 9.0.4 uses the AGPLv3 option; third-party notices and OFL font are retained.
+- Official AI PNG dedicated under CC0-1.0 to the extent of the owner's rights.
+- Portable pinned JUCE fetching, offline source bundle and build documentation.
+- Rebuilt 0.8.0 Windows packages include complete legal/source notices.
+- Application DSP, UI, plugin identity and MIDI mappings are unchanged.
+
 # Changelog
 
 ## 0.8.0

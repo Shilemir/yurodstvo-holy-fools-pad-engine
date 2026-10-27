@@ -1,0 +1,18 @@
+YURODSTVO 0.8.0 — Corresponding Source (AGPL-3.0-only)
+
+Complete Corresponding Source, at no charge, on the same release as the binaries:
+https://github.com/Shilemir/yurodstvo-holy-fools-pad-engine/releases/tag/v0.8.0-agpl
+
+Download YURODSTVO-Holy-Fools-Pad-Engine-v0.8.0-AGPL-Corresponding-Source.zip
+and its .sha256 file. This includes the application, build scripts, assets and
+unmodified JUCE 9.0.4 source and its vendored dependencies. BUILDING.md explains
+offline compilation and installation. Compilers and Windows SDK are separate tools.
+
+Application source revision: the v0.8.0-agpl tag in
+https://github.com/Shilemir/yurodstvo-holy-fools-pad-engine
+JUCE revision: 3fb5cbc0340758596dac39f7c8de47d562b4896e (9.0.4).
+The archive's SOURCE-MANIFEST.txt records exact commit IDs.
+
+Preserve these notices and provide your version's Corresponding Source when
+redistributing. Do not point users only to an unmodified upstream version if
+your binaries contain modifications. See LICENSE.txt sections 5, 6 and 13.

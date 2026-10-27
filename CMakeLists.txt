@@ -1,8 +1,47 @@
+# SPDX-License-Identifier: AGPL-3.0-only
 cmake_minimum_required(VERSION 3.22)
 project(HolyFoolsPadEngine VERSION 0.8.0 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(JUCE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../JUCE" CACHE PATH "Local JUCE framework")
+set(JUCE_PATH "" CACHE PATH "Optional path to an unmodified JUCE 9.0.4 source tree")
+if(NOT JUCE_PATH AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/JUCE/CMakeLists.txt")
+    # The complete Corresponding Source release archive builds without a download.
+    set(JUCE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/JUCE" CACHE PATH "JUCE source tree" FORCE)
+endif()
+if(JUCE_PATH)
+    if(NOT EXISTS "${JUCE_PATH}/CMakeLists.txt")
+        message(FATAL_ERROR "JUCE_PATH must point to a JUCE 9.0.4 source tree")
+    endif()
+else()
+    include(FetchContent)
+    find_package(Git REQUIRED)
+    # Shallow checkout by release tag, then verify its immutable commit identity.
+    FetchContent_Declare(juce
+        GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
+        GIT_TAG 9.0.4
+        GIT_SHALLOW TRUE
+        GIT_SUBMODULES ""
+        GIT_CONFIG core.autocrlf=false
+        # Add JUCE ourselves only after checking its commit and version.
+        SOURCE_SUBDIR _verify_before_add)
+    FetchContent_MakeAvailable(juce)
+    execute_process(COMMAND "${GIT_EXECUTABLE}" rev-parse HEAD
+        WORKING_DIRECTORY "${juce_SOURCE_DIR}"
+        OUTPUT_VARIABLE juce_commit OUTPUT_STRIP_TRAILING_WHITESPACE
+        RESULT_VARIABLE juce_git_result)
+    if(NOT juce_git_result EQUAL 0 OR NOT juce_commit STREQUAL "3fb5cbc0340758596dac39f7c8de47d562b4896e")
+        message(FATAL_ERROR "JUCE 9.0.4 checkout does not match the reviewed upstream commit")
+    endif()
+    set(JUCE_PATH "${juce_SOURCE_DIR}" CACHE PATH "JUCE source tree" FORCE)
+endif()
+file(READ "${JUCE_PATH}/modules/juce_core/system/juce_StandardHeader.h" juce_version_header)
+foreach(component MAJOR_VERSION MINOR_VERSION BUILDNUMBER)
+    string(REGEX MATCH "#define JUCE_${component}[ \t]+([0-9]+)" unused "${juce_version_header}")
+    set(juce_${component} "${CMAKE_MATCH_1}")
+endforeach()
+if(NOT "${juce_MAJOR_VERSION}.${juce_MINOR_VERSION}.${juce_BUILDNUMBER}" STREQUAL "9.0.4")
+    message(FATAL_ERROR "This release requires JUCE 9.0.4")
+endif()
 add_subdirectory("${JUCE_PATH}" "${CMAKE_BINARY_DIR}/juce")
 juce_add_binary_data(YurodstvoAssets NAMESPACE YuroAssets SOURCES
     assets/yurodstvo_icon.png

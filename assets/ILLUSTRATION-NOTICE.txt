@@ -1,17 +1,29 @@
-Official visual asset: yurodstvo_icon.png
+Official illustration: assets/yurodstvo_icon.png
+SPDX-License-Identifier: CC0-1.0
+Dedication date: 2026-10-27
+Affirmer: the YURODSTVO project owner (GitHub: Shilemir)
 
-The project owner states that this illustration was generated for them by AI,
-as an original interpretation inspired by historical Orthodox iconography,
-and is not a reproduction of a specific protected work. The owner explicitly
-authorizes including it in the public YURODSTVO source snapshot and distributing
-it as part of the instrument's VST3 and Standalone releases.
+The owner states that this illustration was generated for them using AI as an
+interpretation inspired by historical Orthodox iconography, not a reproduction
+of a specific protected work. On the owner's instruction, to the extent the
+owner holds copyright or related rights in this file, those rights are dedicated
+under CC0 1.0 Universal, including its waiver and public licence fallback.
 
-This provenance statement records the owner's account and permission. It does
-not assert that all AI-generated material is free of copyright, that exclusive
-copyright necessarily exists in this asset, or that third-party rights and the
-generation service's applicable terms can never be relevant. No public-domain
-dedication or general standalone-artwork licence is made here.
+You may copy, adapt and redistribute the illustration, including commercially
+and independently of this instrument, to the extent of rights covered by CC0.
+Attribution is appreciated but is not a condition of this dedication.
+Full legal text: LICENSES/CC0-1.0.txt in the project or binary package.
+Canonical text: https://creativecommons.org/publicdomain/zero/1.0/legalcode.en
 
-The image is embedded unchanged; the interface applies cropping, proportional
-scaling, colour integration and soft edge masking at runtime. The former
-third-party reference images are not included in the public snapshot or binaries.
+AI output may lack copyright or have different protection depending on
+jurisdiction and human creative involvement. This notice does not assert
+exclusive ownership, promise copyright exists, or guarantee that no third-party
+rights apply. CC0 affects only rights the owner can waive or license; it does
+not waive others' rights, patents or trademarks. No warranty of title or
+non-infringement is made. The generation-service contract and full generation
+record were not independently verified in this dependency audit.
+
+Scope: this PNG only. Fonts, JUCE, SDKs, third-party materials and the full UI
+screenshot are not dedicated under CC0. The PNG is embedded unchanged; the UI
+crops, scales and masks it at runtime. Former external reference images are not
+included in public source or binaries.

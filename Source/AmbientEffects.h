@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright (C) 2026 the YURODSTVO project owner and contributors.
 #pragma once
 #include <juce_audio_basics/juce_audio_basics.h>
 #include <vector>

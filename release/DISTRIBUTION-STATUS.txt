@@ -1,24 +1,22 @@
-YURODSTVO - release provenance
+YURODSTVO 0.8.0 — Open-source distribution, 2026-10-27
 
-The owner authorizes publishing the official AI-generated illustration as part
-of the source snapshot and binary instrument. This does not declare all AI
-material free of rights or make a public-domain dedication. See the included
-ILLUSTRATION-NOTICE.txt for the owner's statement and its scope.
+The original application is GNU AGPL version 3 only (AGPL-3.0-only).
+JUCE 9.0.4 is used under its AGPLv3 option, not the Starter/commercial EULA.
+Use, study, modification, redistribution and commercial use are permitted under
+the applicable licences. Provide Corresponding Source when distributing binaries.
+See LICENSE.txt, COPYRIGHT.md, THIRD_PARTY.md and SOURCE-CODE.txt.
 
-The owner confirms using JUCE 9 Starter under its EULA, not electing AGPLv3 for
-the combined application. Starter eligibility is based on revenue/funding,
-not profit. The owner must remain eligible under the applicable terms.
+Ruslan Display remains SIL OFL 1.1, with its full notice. The official AI PNG is
+dedicated under CC0-1.0 only to the extent of the owner's rights. No exclusive
+copyright or universal third-party-rights clearance is claimed. See
+ILLUSTRATION-NOTICE.txt and CC0-1.0.txt. This does not relicense other materials.
 
-Ruslan Display is unmodified and licensed under SIL OFL 1.1; its complete notice
-is included. JUCE, VST3 and other dependency notices accompany both packages.
-The original application source is published without an open-source licence;
-see LICENSE.txt and THIRD_PARTY.md. The binaries may be downloaded and used as
-an instrument. This does not relicense third-party software or artwork.
+Application version and functionality remain 0.8.0. The historical v0.8.0 tag is
+preserved; v0.8.0-agpl identifies the open-source distribution revision. The
+source archive includes JUCE and can build offline with the documented tools.
+Private history and former external reference images remain excluded.
 
-Former external reference images are excluded from this release and its public
-source snapshot. Full original development history is retained privately on the
-owner's computer, without rewriting its commits.
-
-Experimental prerelease, unsigned, tested locally on Windows 11 x64. No claims
-of validation on another computer or every DAW. No compiler, JUCE installation,
-separate font/image installation or development tools are needed by end users.
+Experimental unsigned Windows x64 prerelease. See release validation for the
+checks actually run. No other-PC, all-DAW or audio-listening test is claimed.
+No compiler, JUCE installation, separate image/font installation or development
+tools are needed to run the binary packages.
