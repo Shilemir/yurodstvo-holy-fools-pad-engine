@@ -1,0 +1,21 @@
+YURODSTVO - Holy Fool's Pad Engine
+Source-available project notice (not an open-source licence)
+
+The project owner has chosen to publish the application source for viewing,
+without granting a general open-source licence. To the extent applicable rights
+exist, rights in the original application code are reserved. No MIT, BSD, GPL or
+other open-source licence is granted to that code by this notice.
+
+Official binary releases are made available for download and use as a musical
+instrument. This notice does not grant a general permission to modify or
+redistribute the application source. Rights arising under applicable law or the
+hosting platform's terms are not excluded. Contact the project owner for other
+permissions. No warranty of fitness or compatibility is offered for this
+experimental prerelease.
+
+The JUCE framework, VST3 SDK, font and other third-party components retain their
+own licences. They are not relicensed by this notice. See THIRD_PARTY.md and the
+notices included with binary releases. JUCE itself is not vendored in this repo.
+
+The supplied AI illustration has a separate provenance and permission notice at
+assets/ILLUSTRATION-NOTICE.txt. It is not declared public domain by this project.

@@ -1,0 +1,17 @@
+Official visual asset: yurodstvo_icon.png
+
+The project owner states that this illustration was generated for them by AI,
+as an original interpretation inspired by historical Orthodox iconography,
+and is not a reproduction of a specific protected work. The owner explicitly
+authorizes including it in the public YURODSTVO source snapshot and distributing
+it as part of the instrument's VST3 and Standalone releases.
+
+This provenance statement records the owner's account and permission. It does
+not assert that all AI-generated material is free of copyright, that exclusive
+copyright necessarily exists in this asset, or that third-party rights and the
+generation service's applicable terms can never be relevant. No public-domain
+dedication or general standalone-artwork licence is made here.
+
+The image is embedded unchanged; the interface applies cropping, proportional
+scaling, colour integration and soft edge masking at runtime. The former
+third-party reference images are not included in the public snapshot or binaries.

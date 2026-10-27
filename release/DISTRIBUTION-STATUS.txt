@@ -1,0 +1,24 @@
+YURODSTVO - release provenance
+
+The owner authorizes publishing the official AI-generated illustration as part
+of the source snapshot and binary instrument. This does not declare all AI
+material free of rights or make a public-domain dedication. See the included
+ILLUSTRATION-NOTICE.txt for the owner's statement and its scope.
+
+The owner confirms using JUCE 9 Starter under its EULA, not electing AGPLv3 for
+the combined application. Starter eligibility is based on revenue/funding,
+not profit. The owner must remain eligible under the applicable terms.
+
+Ruslan Display is unmodified and licensed under SIL OFL 1.1; its complete notice
+is included. JUCE, VST3 and other dependency notices accompany both packages.
+The original application source is published without an open-source licence;
+see LICENSE.txt and THIRD_PARTY.md. The binaries may be downloaded and used as
+an instrument. This does not relicense third-party software or artwork.
+
+Former external reference images are excluded from this release and its public
+source snapshot. Full original development history is retained privately on the
+owner's computer, without rewriting its commits.
+
+Experimental prerelease, unsigned, tested locally on Windows 11 x64. No claims
+of validation on another computer or every DAW. No compiler, JUCE installation,
+separate font/image installation or development tools are needed by end users.

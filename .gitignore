@@ -1,0 +1,12 @@
+/build/
+/build-*/
+/artifacts/
+/.vs/
+/.vscode/
+*.user
+*.suo
+*.pdb
+*.ilk
+/.env
+/.env.*
+!/.env.example
