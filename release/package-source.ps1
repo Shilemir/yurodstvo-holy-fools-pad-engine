@@ -25,7 +25,30 @@ if (Get-ChildItem -LiteralPath $stage -Force -Recurse | Where-Object { $_.Name -
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $zip = Join-Path $output 'YURODSTVO-Holy-Fools-Pad-Engine-v0.8.0-AGPL-Corresponding-Source.zip'
 if (Test-Path -LiteralPath $zip) { throw 'Source archive already exists; preserve previous packages.' }
-[IO.Compression.ZipFile]::CreateFromDirectory($stage,$zip,[IO.Compression.CompressionLevel]::Optimal,$false)
+$stream = [IO.File]::Open($zip,[IO.FileMode]::CreateNew)
+$archive = [IO.Compression.ZipArchive]::new($stream,[IO.Compression.ZipArchiveMode]::Create,$false)
+try {
+    foreach ($file in Get-ChildItem -LiteralPath $stage -Recurse -File | Sort-Object FullName) {
+        $relative = $file.FullName.Substring($stage.Length+1).Replace('\','/')
+        $entry = $archive.CreateEntry($relative,[IO.Compression.CompressionLevel]::Optimal)
+        $input = $file.OpenRead()
+        $outputStream = $entry.Open()
+        try { $input.CopyTo($outputStream) } finally { $input.Dispose(); $outputStream.Dispose() }
+    }
+} finally { $archive.Dispose(); $stream.Dispose() }
+$check = [IO.Compression.ZipFile]::OpenRead($zip)
+try {
+    foreach ($entry in $check.Entries) {
+        if ($entry.FullName.Contains('\')) { throw 'Nonportable ZIP path.' }
+        $input = $entry.Open()
+        $sha = [Security.Cryptography.SHA256]::Create()
+        try { $entryHash = [BitConverter]::ToString($sha.ComputeHash($input)).Replace('-','') }
+        finally { $input.Dispose(); $sha.Dispose() }
+        if ($entryHash -ne (Get-FileHash -LiteralPath (Join-Path $stage $entry.FullName) -Algorithm SHA256).Hash) {
+            throw 'Source ZIP roundtrip mismatch.'
+        }
+    }
+} finally { $check.Dispose() }
 $hash = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash
 [IO.File]::WriteAllText(($zip+'.sha256'),"$hash  $([IO.Path]::GetFileName($zip))`r`n")
 Write-Output $zip
