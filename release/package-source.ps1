@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 param([Parameter(Mandatory=$true)][string]$JuceDirectory)
 $ErrorActionPreference = 'Stop'
+Add-Type -AssemblyName System.IO.Compression.FileSystem
 $root = Split-Path $PSScriptRoot -Parent
 $JuceDirectory = [IO.Path]::GetFullPath($JuceDirectory)
 $commit = & git -C $root rev-parse HEAD
@@ -15,14 +16,13 @@ $stage = Join-Path $output ('source-'+[guid]::NewGuid().ToString('N'))
 $projectArchive = $stage+'.zip'
 & git -C $root archive --format=zip --output=$projectArchive HEAD
 if ($LASTEXITCODE) { throw 'Project source export failed.' }
-Expand-Archive -LiteralPath $projectArchive -DestinationPath $stage
+[IO.Compression.ZipFile]::ExtractToDirectory($projectArchive,$stage)
 $juceArchive = $stage+'-JUCE.zip'
 & git -C $JuceDirectory archive --format=zip --output=$juceArchive HEAD
 if ($LASTEXITCODE) { throw 'JUCE source export failed.' }
-Expand-Archive -LiteralPath $juceArchive -DestinationPath (Join-Path $stage 'dependencies\JUCE')
+[IO.Compression.ZipFile]::ExtractToDirectory($juceArchive,(Join-Path $stage 'dependencies\JUCE'))
 [IO.File]::WriteAllText((Join-Path $stage 'SOURCE-MANIFEST.txt'),"Application: $commit`nSource tag: v0.8.0-agpl`nJUCE: $juceCommit (9.0.4)`nApplication version: 0.8.0`nLicence: AGPL-3.0-only; see COPYRIGHT.md and THIRD_PARTY.md for exceptions.`n")
 if (Get-ChildItem -LiteralPath $stage -Force -Recurse | Where-Object { $_.Name -eq '.git' -or $_.FullName -match '[\\/]assets[\\/]reference[\\/]' }) { throw 'Private content in source stage.' }
-Add-Type -AssemblyName System.IO.Compression.FileSystem
 $zip = Join-Path $output 'YURODSTVO-Holy-Fools-Pad-Engine-v0.8.0-AGPL-Corresponding-Source.zip'
 if (Test-Path -LiteralPath $zip) { throw 'Source archive already exists; preserve previous packages.' }
 $stream = [IO.File]::Open($zip,[IO.FileMode]::CreateNew)
