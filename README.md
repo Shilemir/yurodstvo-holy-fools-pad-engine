@@ -1,34 +1,34 @@
 # YURODSTVO — Holy Fool's Synth for Arturia MiniLab3
 
-**Version 1.0.0 — the first official stable release**, shown as **v1.0** in the
+**Version 1.1.0 — the current official stable release**, shown as **v1.1** in the
 editor. An independent musical instrument for ambient, drones and unstable,
 slowly evolving textures, inspired by holy foolishness, Orthodox iconography,
 church bells and sacred acoustic space. Free and open source: **AGPL-3.0-only**.
 
-[Download v1.0.0](https://github.com/Shilemir/yurodstvo-holy-fools-pad-engine/releases/tag/v1.0.0)
+[Download v1.1.0](https://github.com/Shilemir/yurodstvo-holy-fools-pad-engine/releases/tag/v1.1.0)
 · [Latest stable release](https://github.com/Shilemir/yurodstvo-holy-fools-pad-engine/releases/latest)
 
-![YURODSTVO v1.0 interface](docs/images/interface.png)
+![YURODSTVO v1.1 interface](docs/images/interface-1.1.png)
 
 ## Download and installation
 
 End users do not need JUCE, Visual Studio, a compiler or separate font/image files.
 Choose the binary ZIP under Assets, not GitHub's automatic source archives.
 
-**VST3:** download `YURODSTVO-v1.0.0-Windows-x64-VST3.zip`, extract everything,
+**VST3:** download `YURODSTVO-v1.1.0-Windows-x64-VST3.zip`, extract everything,
 close the DAW and copy the entire `YURODSTVO - Holy Fool's Synth for Arturia MiniLab3.vst3`
 bundle to `C:\Program Files\Common Files\VST3`. Preserve all Contents subfolders.
 Restart/rescan and load the instrument on a MIDI/instrument track. Keep only one
 version in scanned directories: the VST3 identity is unchanged. Back up projects
 before upgrading from 0.x, whose sound ranges and hardware fader order differ.
 
-**Standalone:** download `YURODSTVO-v1.0.0-Windows-x64-Standalone.zip`, extract
+**Standalone:** download `YURODSTVO-v1.1.0-Windows-x64-Standalone.zip`, extract
 and run `YURODSTVO - Holy Fool's Synth for Arturia MiniLab3.exe`. Select audio/MIDI
 in Options / Audio-MIDI Settings if needed. Keep the LICENSES folder with it.
 Start at a moderate Master/monitor level. No driver or runtime installer is bundled.
 
 Check the ZIPs against `SHA256SUMS.txt` from the same release, for example:
-`Get-FileHash .\YURODSTVO-v1.0.0-Windows-x64-VST3.zip -Algorithm SHA256`.
+`Get-FileHash .\YURODSTVO-v1.1.0-Windows-x64-VST3.zip -Algorithm SHA256`.
 
 ## Instrument
 
@@ -42,6 +42,10 @@ Check the ZIPs against `SHA256SUMS.txt` from the same release, for example:
   each −15 to +15 dB, followed by global MASTER volume and final peak protection.
 - Up to 16 voices, velocity, sustain, host automation and stored plugin state.
 - Interactive two-octave keyboard, octave navigation and real-envelope Release Glow.
+- Standalone computer keyboard: A/W/S/E/D/F/T/G/Y/H/U/J/K plays C through C
+  from the visible first C (initially MIDI 48); the octave arrows move its range.
+  Playing requires the active editor, releases notes on focus loss and does not
+  capture DAW keyboard shortcuts in VST3.
 - Five Archetypes, PRAY FOR INSPIRATION and Arturia MiniLab 3 MIDI integration.
 - Embedded official illustration and unmodified Ruslan Display font.
 
@@ -73,6 +77,11 @@ stores eight macros, three EQ bands and both waveforms in
 user-defined sound only when clicked. Missing/invalid files leave the sound
 unchanged. Master, expression, polyphony and MIDI routing are not saved in this
 Custom slot. Host projects independently retain their own plugin state.
+
+In 1.1.0, new instances start with THE HERMIT and eight voices. Restoring a
+saved host state overrides those defaults; reopening the editor never resets
+the sound. THE HERMIT, THE MARTYR and THE INQUISITOR use the new calibrated
+settings in [VERSION-1.1.md](VERSION-1.1.md); THE HIEROPHANT remains unchanged.
 
 **PRAY FOR INSPIRATION** creates unpredictable combinations of those 13 existing
 parameters rather than choosing a factory preset. Master, expression, polyphony
@@ -131,7 +140,7 @@ See [BUILDING.md](BUILDING.md). CMake 3.22+ (new enough for your generator), a C
 Windows toolchain/SDK and JUCE **9.0.4** are required. The tested toolchain is
 Visual Studio 2026/MSVC 19.51. CMake can fetch the exact official JUCE revision
 `3fb5cbc0340758596dac39f7c8de47d562b4896e`, accept `JUCE_PATH`, or discover
-`dependencies/JUCE` in the complete `YURODSTVO-v1.0.0-Corresponding-Source.zip`
+`dependencies/JUCE` in the complete `YURODSTVO-v1.1.0-Corresponding-Source.zip`
 release asset for offline builds. JUCE is not vendored in the Git repository.
 
 ```powershell

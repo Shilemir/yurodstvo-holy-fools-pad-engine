@@ -8,6 +8,18 @@ START
 4. Start at a moderate Master level. No DAW or controller is needed for mouse keys.
 Keep the LICENSES folder beside the application. No installer is run.
 To uninstall, close the app and remove its extracted folder.
+NEW INSTANCE
+The Hermit is the default sound; saved host state takes precedence.
+
+COMPUTER KEYBOARD (STANDALONE ONLY)
+With the editor active, A W S E D F T G Y H U J K play chromatically from C to C.
+The initial C is MIDI 48 (C2). The on-screen octave arrows move the range.
+Press to play; release to begin the note's Release. Chords use the same synth
+voices and glow as MIDI. Repeated key events do not retrigger a held note.
+Focus loss, octave change and Silence cancel computer notes; release held keys
+before playing again. Text fields and Ctrl/Alt/Command shortcuts are excluded.
+Simultaneous key count depends on keyboard hardware. No global hooks are used.
+
 CONTROLS AND ARCHETYPES
 E1 DEVOTION / Shimmer; E2 DUALISM / Balance; E3 PATIENCE / Attack;
 E4 REMEMBRANCE / Release; E5 SANCTUARY / Reverb; E6 SOLITUDE / Synced Delay;
@@ -30,8 +42,8 @@ LICENCE AND SOURCE
 GNU AGPL v3.0 only (AGPL-3.0-only). JUCE 9.0.4 uses its AGPL option.
 Keep LICENSES and provide complete Corresponding Source when redistributing
 binaries. Exact source, including JUCE, is provided in the same release:
-https://github.com/Shilemir/yurodstvo-holy-fools-pad-engine/releases/tag/v1.0.0
-See SOURCE-CODE.txt and YURODSTVO-v1.0.0-Corresponding-Source.zip.
+https://github.com/Shilemir/yurodstvo-holy-fools-pad-engine/releases/tag/v1.1.0
+See SOURCE-CODE.txt and YURODSTVO-v1.1.0-Corresponding-Source.zip.
 Third-party notices and OFL font remain intact. Only the owner's applicable
 rights in the AI PNG are dedicated under CC0-1.0; see ILLUSTRATION-NOTICE.txt.
 The KJV inscription retains its attribution and separate regional-rights notice.

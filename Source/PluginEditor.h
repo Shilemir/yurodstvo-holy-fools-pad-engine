@@ -56,7 +56,7 @@ private:
     void switchNote(int note);
     void timerCallback() override;
 };
-class DroneEditor final : public juce::AudioProcessorEditor, private juce::Timer
+class DroneEditor final : public juce::AudioProcessorEditor, private juce::Timer, private juce::KeyListener
 {
 public:
     explicit DroneEditor(DroneProcessor&);
@@ -65,6 +65,11 @@ public:
     void resized() override;
     bool presetIsModified() const { return presetModified; }
     void refreshPresetSelection();
+    bool computerKeyboardEnabled() const {return processor.acceptsComputerKeyboard();}
+    void focusGained(FocusChangeType) override { updateComputerKeyboard(); }
+    void focusLost(FocusChangeType) override { updateComputerKeyboard(); }
+    void focusOfChildComponentChanged(FocusChangeType) override { updateComputerKeyboard(); }
+    void visibilityChanged() override { updateComputerKeyboard(); }
     static juce::String footerQuote()
     {
         return "Let no man deceive himself. If any man among you seemeth to be wise in this world, let him become a fool, that he may be wise.";
@@ -97,6 +102,13 @@ private:
     int inspirationFlash=0;
     juce::TooltipWindow tooltips { this, 650 };
     float meter = 0;
+    ComputerKeyboard computerKeyboard;
+    unsigned computerEpoch=0;
+    bool keyPressed(const juce::KeyPress&,juce::Component*) override;
+    bool keyStateChanged(bool,juce::Component*) override;
+    void updateComputerKeyboard();
+    void cancelComputerKeyboard();
+    bool computerFocusAllowed() const;
     void timerCallback() override;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DroneEditor)
 };

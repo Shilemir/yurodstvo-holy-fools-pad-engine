@@ -21,6 +21,7 @@
 #include "ArchetypeTests.h"
 #include "StableGainTests.h"
 #include "RefinementTests.h"
+#include "Version11Tests.h"
 
 namespace
 {
@@ -41,6 +42,8 @@ int main(int argc, char** argv)
     juce::ScopedJuceInitialiser_GUI gui;
     try
     {
+        const auto versionRoot=argc>1?juce::File(juce::String(argv[1])):juce::File::getCurrentWorkingDirectory().getChildFile("artifacts");
+        versionRoot.createDirectory();runVersion11Tests(versionRoot,argc>2?juce::String(argv[2]):juce::String());
         runNavigationTests();
         runLayoutTests();
         runWaveformTests();
@@ -148,7 +151,7 @@ int main(int argc, char** argv)
             energy(engine, static_cast<int>(sr * 21));
             check(engine.activeVoices() == 0, "Long release finishes at multiple sample rates");
         }
-        DroneProcessor processor;
+        DroneProcessor processor;neutralTestSound(processor);
         setPlain(processor, "detune", 50); // Legacy host automation is still supported; E1 no longer writes it.
         processor.prepareToPlay(48000, 512);
         juce::AudioBuffer<float> buffer(2, 512); juce::MidiBuffer midi;
@@ -163,7 +166,7 @@ int main(int argc, char** argv)
         check(processor.voices.load() == 1, "CC and Note On coexist");
         juce::MemoryBlock state;
         processor.getStateInformation(state); // Before UI timer flush.
-        DroneProcessor restored;
+        DroneProcessor restored;neutralTestSound(restored);
         restored.setStateInformation(state.getData(), static_cast<int>(state.getSize()));
         check(std::abs(restored.parameters.getRawParameterValue("detune")->load() - 50) < 0.01f, "Save captures pending MIDI CC");
         processor.flushMidiParameters();
@@ -241,7 +244,7 @@ int main(int argc, char** argv)
             format.findAllTypesForFile(descriptions, juce::String(argv[2]));
             check(descriptions.size() == 1 && descriptions[0]->isInstrument && descriptions[0]->name == yuro::productName, "VST3 loads under the new product name");
             juce::String error;
-            auto instance = format.createInstanceFromDescription(*descriptions[0], 48000, 512, error);
+            auto instance = format.createInstanceFromDescription(*descriptions[0], 48000, 512, error);if(instance)neutralHostSound(*instance);
             if (!instance) throw std::runtime_error(error.toStdString());
             for (auto* parameter : instance->getParameters()) if (parameter->getName(80) == "Oscillator Detune") parameter->setValueNotifyingHost(1.0f);
             for (auto* parameter : instance->getParameters()) if (parameter->getName(80) == "Polyphony") parameter->setValueNotifyingHost(1.0f);
@@ -327,7 +330,7 @@ int main(int argc, char** argv)
             }
             check(shimmerSaved&&polyphonySaved,"Real VST3 receives E1 CC86 and restores Shimmer plus the sixteen-voice limit");
             instance->releaseResources();
-            auto pitchInstance = format.createInstanceFromDescription(*descriptions[0], 48000, 512, error);
+            auto pitchInstance = format.createInstanceFromDescription(*descriptions[0], 48000, 512, error);if(pitchInstance)neutralHostSound(*pitchInstance);
             if (!pitchInstance) throw std::runtime_error(error.toStdString());
             for (auto* parameter : pitchInstance->getParameters())
             {

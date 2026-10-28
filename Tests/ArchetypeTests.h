@@ -6,12 +6,12 @@
 inline void runArchetypeTests(const juce::File& root)
 {
     const std::array<yuro::SoundPreset,4> specified {{
-        {{.437f,.425f,5,10,.65f,.15f,.10f,.08f,-2,-1,-2,0,1}},
-        {{.10f,.60f,.15f,5,.45f,.35f,.20f,.93f,6,2,-7.1f,2,3}},
-        {{.08f,.20f,.005f,2,.20f,.20f,1,.666f,3.4f,3,5,2,3}},
+        {{.184f,.3162f,4,8,.541f,.15f,.33f,.08f,0,0,0,0,1}},
+        {{.054f,.3605f,1.011f,13.905f,.237f,.498f,1,1,-.6f,.3f,6.6f,1,0}},
+        {{1,.2045f,.005f,1.115f,.35f,0,1,.666f,-7.5f,0,2.9f,3,0}},
         {{.80f,.50f,3,15,.90f,.35f,1,.15f,-1,2,3,1,0}}
     }};
-    DroneProcessor processor;
+    DroneProcessor processor;neutralTestSound(processor);
     setPlain(processor,"master",.73f);setPlain(processor,"polyphony",12);
     processor.setPitchFromMidi(12000);processor.setModulation(85);
     for(size_t slot=0;slot<yuro::archetypes.size();++slot)
@@ -34,7 +34,7 @@ inline void runArchetypeTests(const juce::File& root)
     std::array<double,4> earlyRms {}, brightness {};
     for(size_t slot=0;slot<4;++slot)
     {
-        DroneProcessor sound;setPlain(sound,"master",.65f);
+        DroneProcessor sound;neutralTestSound(sound);setPlain(sound,"master",.65f);
         sound.applySoundPreset(yuro::archetypes[slot]);sound.prepareToPlay(48000,256);
         juce::AudioBuffer<float> blockAudio(2,256);double energy=0,difference=0;
         float previous=0;int count=0;
@@ -74,7 +74,7 @@ inline void runArchetypeTests(const juce::File& root)
         "Custom restores only the thirteen sound values, leaving Master untouched");
     processor.applySoundPreset(yuro::archetypes[0]);
     juce::MemoryBlock session;processor.getStateInformation(session);
-    DroneProcessor hostRestored;hostRestored.setStateInformation(session.getData(),static_cast<int>(session.getSize()));
+    DroneProcessor hostRestored;neutralTestSound(hostRestored);hostRestored.setStateInformation(session.getData(),static_cast<int>(session.getSize()));
     waveCheck(std::abs(hostRestored.parameters.getRawParameterValue("madness")->load()-.08f)<.001f,
         "Host project restores its own sound without automatically loading global Custom");
     store.location().replaceWithText("{\"version\":99}");
@@ -85,7 +85,7 @@ inline void runArchetypeTests(const juce::File& root)
         m.addEvent(juce::MidiMessage::controllerEvent(1,cc,value),0);p.processBlock(audio,m);p.flushMidiParameters();};
     for(int encoder=0;encoder<8;++encoder)
     {
-        DroneProcessor p;p.prepareToPlay(48000,256);
+        DroneProcessor p;neutralTestSound(p);p.prepareToPlay(48000,256);
         const int control=encoder<6?encoder:encoder+4;
         const int cc=yuro::controlCC[static_cast<size_t>(control)];
         send(p,cc,50);p.applySoundPreset(yuro::archetypes[0]);
@@ -98,13 +98,13 @@ inline void runArchetypeTests(const juce::File& root)
         waveCheck(parameter->getValue()<=forward+.001f,
             "E1-E8 reverse without pickup travel or a large jump");
     }
-    DroneProcessor unknown;unknown.prepareToPlay(48000,256);unknown.applySoundPreset(yuro::archetypes[1]);
+    DroneProcessor unknown;neutralTestSound(unknown);unknown.prepareToPlay(48000,256);unknown.applySoundPreset(yuro::archetypes[1]);
     const float baseline=unknown.parameters.getRawParameterValue("mix")->load();
     send(unknown,71,80);waveCheck(unknown.parameters.getRawParameterValue("mix")->load()==baseline,
         "Unknown initial absolute encoder position establishes a safe baseline");
     send(unknown,71,81);waveCheck(unknown.parameters.getRawParameterValue("mix")->load()>baseline,
         "Second observation after unknown baseline responds in the correct direction");
-    DroneProcessor eqFader;eqFader.prepareToPlay(48000,256);eqFader.applySoundPreset(yuro::archetypes[1]);
+    DroneProcessor eqFader;neutralTestSound(eqFader);eqFader.prepareToPlay(48000,256);eqFader.applySoundPreset(yuro::archetypes[1]);
     const auto eqStart=eqFader.parameters.getRawParameterValue("eqBass")->load();
     send(eqFader,82,0);
     waveCheck(eqFader.parameters.getRawParameterValue("eqBass")->load()==eqStart,
@@ -113,7 +113,7 @@ inline void runArchetypeTests(const juce::File& root)
     send(eqFader,82,juce::jmin(127,juce::roundToInt((eqStart+yuro::maxEqDb)/(2*yuro::maxEqDb)*127)+1));
     waveCheck(eqFader.parameters.getRawParameterValue("eqBass")->load()!=eqStart,
         "EQ fader resumes absolute control after crossing its displayed preset value");
-    DroneProcessor faders;faders.prepareToPlay(48000,256);send(faders,17,40);
+    DroneProcessor faders;neutralTestSound(faders);faders.prepareToPlay(48000,256);send(faders,17,40);
     faders.applySoundPreset(yuro::archetypes[2]);
     const float master=faders.parameters.getRawParameterValue("master")->load();
     send(faders,17,41);waveCheck(faders.parameters.getRawParameterValue("master")->load()!=master,
@@ -122,7 +122,7 @@ inline void runArchetypeTests(const juce::File& root)
     send(faders,17,120);waveCheck(faders.parameters.getRawParameterValue("master")->load()==guarded,
         "A mouse-edited Master cannot jump to a distant physical fader position");
 
-    DroneProcessor playing;setPlain(playing,"polyphony",16);playing.prepareToPlay(48000,256);
+    DroneProcessor playing;neutralTestSound(playing);setPlain(playing,"polyphony",16);playing.prepareToPlay(48000,256);
     juce::AudioBuffer<float> audio(2,256);bool safe=true;float peak=0;
     for(int block=0;block<800;++block)
     {
@@ -136,7 +136,7 @@ inline void runArchetypeTests(const juce::File& root)
     }
     waveCheck(safe&&peak<=.940001f&&playing.voices.load()>0,
         "Switching archetypes during sixteen held voices keeps finite bounded output and voices alive");
-    DroneProcessor guiProcessor;std::unique_ptr<juce::AudioProcessorEditor> editor(guiProcessor.createEditor());
+    DroneProcessor guiProcessor;neutralTestSound(guiProcessor);std::unique_ptr<juce::AudioProcessorEditor> editor(guiProcessor.createEditor());
     std::array<juce::TextButton*,4> factoryButtons {};
     juce::TextButton *customButton=nullptr,*saveButton=nullptr,*prayer=nullptr,*silence=nullptr;
     for(auto* component:editor->getChildren())
@@ -173,12 +173,12 @@ inline void runArchetypeTests(const juce::File& root)
     {
         if(child->getName()=="Encoder 8")madnessKnob=dynamic_cast<juce::Slider*>(child);
         if(child->getName()=="Fader 1")bassFader=dynamic_cast<juce::Slider*>(child);
-        if(child->getName()=="Pad 3")sawPad=dynamic_cast<juce::Button*>(child);
-        if(child->getName()=="Pad 8")squarePad=dynamic_cast<juce::Button*>(child);
+        if(child->getName()=="Pad 4")sawPad=dynamic_cast<juce::Button*>(child);
+        if(child->getName()=="Pad 5")squarePad=dynamic_cast<juce::Button*>(child);
     }
     waveCheck(madnessKnob&&bassFader&&sawPad&&squarePad
         &&madnessKnob->getTextFromValue(madnessKnob->getValue())=="66.6%"
-        &&bassFader->getTextFromValue(bassFader->getValue())=="+3.4 dB"
+        &&bassFader->getTextFromValue(bassFader->getValue())=="-7.5 dB"
         &&sawPad->getToggleState()&&squarePad->getToggleState(),
-        "Inquisitor GUI shows exact decimal controls and its Sawtooth/Square waveforms");
+        "Inquisitor GUI shows exact decimal controls and its Square/Sine waveforms");
 }

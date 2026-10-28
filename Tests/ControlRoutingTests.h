@@ -16,7 +16,7 @@ inline void runControlRoutingTests()
             && router.handle(message, 2, 0, 36, cc) == -1 && router.handle(message, 3, 0, 36, 102) == -1;
     }
     waveCheck(protectedRanges, "Control CCs remain protected from manual, Auto and learned pad mappings");
-    DroneProcessor processor; processor.prepareToPlay(48000, 128);
+    DroneProcessor processor;neutralTestSound(processor); processor.prepareToPlay(48000, 128);
     juce::AudioBuffer<float> audio(2, 128);
     bool allModes = true;
     for (int mode = 0; mode < 4; ++mode)
@@ -79,7 +79,7 @@ inline void runControlRoutingTests()
     waveCheck(mouse && processor.currentWaveform(0) == 2 && processor.currentWaveform(1) == 3,
         "Mouse edits of synthesis, effects and EQ preserve pad choices");
     juce::MemoryBlock state; processor.getStateInformation(state);
-    DroneProcessor restored; restored.setStateInformation(state.getData(), static_cast<int>(state.getSize()));
+    DroneProcessor restored;neutralTestSound(restored); restored.setStateInformation(state.getData(), static_cast<int>(state.getSize()));
     bool saved = true;
     for (size_t i = 0; i < ids.size(); ++i)
         saved = saved && std::abs(restored.parameters.getRawParameterValue(ids[i])->load() - processor.parameters.getRawParameterValue(ids[i])->load()) < 0.011f

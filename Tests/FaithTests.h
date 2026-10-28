@@ -4,7 +4,7 @@
 
 inline void runFaithTests(const juce::File& root,const juce::String& currentPath)
 {
-    DroneProcessor a,b;
+    DroneProcessor a,b;neutralTestSound(a);neutralTestSound(b);
     for(auto* p:{&a,&b})
     {
         setPlain(*p,"attack",.005f);setPlain(*p,"madness",1);setPlain(*p,"harmony",.7f);
@@ -83,7 +83,7 @@ inline void runFaithTests(const juce::File& root,const juce::String& currentPath
     {
         juce::OwnedArray<juce::PluginDescription> descriptions;format.findAllTypesForFile(descriptions,path);
         if(descriptions.isEmpty())throw std::runtime_error("Cannot scan Madness comparison plugin");
-        juce::String error;auto result=format.createInstanceFromDescription(*descriptions[0],48000,256,error);
+        juce::String error;auto result=format.createInstanceFromDescription(*descriptions[0],48000,256,error);if(result)neutralHostSound(*result);
         if(!result)throw std::runtime_error(error.toStdString());return result;
     };
     for(float amount:{0.0f,.25f,.5f,.75f,1.0f})

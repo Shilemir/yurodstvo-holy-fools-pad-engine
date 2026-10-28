@@ -13,7 +13,7 @@ inline void runStableGainTests(const juce::File& root,const juce::String& curren
         juce::OwnedArray<juce::PluginDescription> found;format.findAllTypesForFile(found,path);
         if(found.isEmpty())throw std::runtime_error("Cannot scan Harmony baseline VST3");
         juce::String error;
-        auto instance=format.createInstanceFromDescription(*found[0],48000,256,error);
+        auto instance=format.createInstanceFromDescription(*found[0],48000,256,error);if(instance)neutralHostSound(*instance);
         if(!instance)throw std::runtime_error(error.toStdString());
         for(auto* parameter:instance->getParameters())
         {

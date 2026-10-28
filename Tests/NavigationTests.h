@@ -5,7 +5,7 @@
 
 inline void runNavigationTests()
 {
-    DroneProcessor p;
+    DroneProcessor p;neutralTestSound(p);
     const auto range=[](DroneProcessor& processor,const char* id)
     { return processor.parameters.getParameter(id)->getNormalisableRange(); };
     waveCheck(range(p,"attack").end==20 && range(p,"release").end==20
@@ -33,7 +33,7 @@ inline void runNavigationTests()
         "MIDI 48 is the default C2; the left arrow excludes pad octave 36-47");
     p.keyboardFirstNote.store(60);
     juce::MemoryBlock viewState;p.getStateInformation(viewState);
-    DroneProcessor viewRestored;viewRestored.setStateInformation(viewState.getData(),static_cast<int>(viewState.getSize()));
+    DroneProcessor viewRestored;neutralTestSound(viewRestored);viewRestored.setStateInformation(viewState.getData(),static_cast<int>(viewState.getSize()));
     waveCheck(viewRestored.keyboardFirstNote.load()==60,
         "An existing saved C3 keyboard view remains unchanged on reopening");
     p.keyboardFirstNote.store(48);
@@ -68,7 +68,7 @@ inline void runNavigationTests()
     old.setProperty("keyboardFirstNote",36,nullptr);
     auto oldXml=old.createXml();juce::MemoryBlock legacy;
     DroneProcessor::copyXmlToBinary(*oldXml,legacy);
-    DroneProcessor restored;restored.setStateInformation(legacy.getData(),static_cast<int>(legacy.getSize()));
+    DroneProcessor restored;neutralTestSound(restored);restored.setStateInformation(legacy.getData(),static_cast<int>(legacy.getSize()));
     waveCheck(restored.parameters.getRawParameterValue("attack")->load()==20
         && restored.parameters.getRawParameterValue("release")->load()==20,
         "Legacy envelope values above twenty seconds clamp on state load");

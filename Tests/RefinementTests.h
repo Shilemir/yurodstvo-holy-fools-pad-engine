@@ -7,7 +7,7 @@
 
 inline void runRefinementTests(const juce::File& root,const juce::String& currentPath)
 {
-    DroneProcessor processor;
+    DroneProcessor processor;neutralTestSound(processor);
     waveCheck(processor.parameters.getRawParameterValue("mix")->load()==.5f,
         "New Dualism instances retain the equal 0.5/0.5 linear oscillator balance");
     std::unique_ptr<juce::AudioProcessorEditor> editor(processor.createEditor());
@@ -34,7 +34,7 @@ inline void runRefinementTests(const juce::File& root,const juce::String& curren
         ==silence->findColour(juce::TextButton::textColourOffId),
         "Prayer and Silence use the identical warm-gold text colour");
     setPlain(processor,"mix",.62f);juce::MemoryBlock state;processor.getStateInformation(state);
-    DroneProcessor restored;restored.setStateInformation(state.getData(),static_cast<int>(state.getSize()));
+    DroneProcessor restored;neutralTestSound(restored);restored.setStateInformation(state.getData(),static_cast<int>(state.getSize()));
     waveCheck(std::abs(restored.parameters.getRawParameterValue("mix")->load()-.62f)<.0001f,
         "A legacy positive Dualism balance survives the host-state round trip unchanged");
     float minimum=1,maximum=0;
@@ -93,7 +93,7 @@ inline void runRefinementTests(const juce::File& root,const juce::String& curren
     {
         juce::OwnedArray<juce::PluginDescription> descriptions;format.findAllTypesForFile(descriptions,path);
         if(descriptions.isEmpty())throw std::runtime_error("Cannot scan Harmony comparison plugin");
-        juce::String error;auto instance=format.createInstanceFromDescription(*descriptions[0],48000,256,error);
+        juce::String error;auto instance=format.createInstanceFromDescription(*descriptions[0],48000,256,error);if(instance)neutralHostSound(*instance);
         if(!instance)throw std::runtime_error(error.toStdString());
         for(auto* parameter:instance->getParameters())
         {

@@ -1,8 +1,8 @@
-YURODSTVO 1.0.0 — Official stable reference release, 2026-10-28
+YURODSTVO 1.1.0 — Official stable reference release, 2026-10-28
 
 Product: YURODSTVO - Holy Fool's Synth for Arturia MiniLab3.
-Technical version 1.0.0; editor v1.0; source tag v1.0.0.
-The approved existing implementation is published without DSP or functional edits.
+Technical version 1.1.0; editor v1.1; source tag v1.1.0.
+Publishes the approved 1.1 implementation without further DSP or UI edits.
 THE HIEROPHANT HELL = -1.0 dB. Initial and recurring Harmony bells already include
 +2 dB. Stable status is the owner's reference-version designation, not a claim
 of testing every host/device. See published measured validation and limits.

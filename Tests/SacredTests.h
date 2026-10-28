@@ -12,7 +12,7 @@ inline void compareSacredBypass(const juce::File& root,const juce::String& curre
     {
         juce::OwnedArray<juce::PluginDescription> descriptions;format.findAllTypesForFile(descriptions,path);
         if(descriptions.isEmpty())throw std::runtime_error("Unable to scan compatibility binary");
-        juce::String error;auto result=format.createInstanceFromDescription(*descriptions[0],48000,256,error);
+        juce::String error;auto result=format.createInstanceFromDescription(*descriptions[0],48000,256,error);if(result)neutralHostSound(*result);
         if(!result)throw std::runtime_error(error.toStdString());return result;
     };
     auto before=load(oldPath.getFullPathName()),after=load(currentPath);
@@ -116,7 +116,7 @@ inline void runSacredTests(const juce::File& root)
         waveCheck(continuous && hi-lo>.2f && independence>sr,"Organic modulation varies slowly, continuously and independently on a held note");
     }
 
-    DroneProcessor p; p.prepareToPlay(48000,256); juce::AudioBuffer<float> audio(2,256);
+    DroneProcessor p;neutralTestSound(p); p.prepareToPlay(48000,256); juce::AudioBuffer<float> audio(2,256);
     auto send=[&](int cc,int value) {juce::MidiBuffer m;m.addEvent(juce::MidiMessage::controllerEvent(1,cc,value),37);p.processBlock(audio,m);};
     for(int mode=0;mode<4;++mode)
     {
@@ -126,7 +126,7 @@ inline void runSacredTests(const juce::File& root)
             p.padRouter.learned[0].store(PadRouter::encode(2,1,family[static_cast<size_t>(control)]));
             send(family[static_cast<size_t>(control)],73);
             // Save before message-thread flush: pending control values must survive.
-            juce::MemoryBlock state; p.getStateInformation(state); DroneProcessor restored;
+            juce::MemoryBlock state; p.getStateInformation(state); DroneProcessor restored;neutralTestSound(restored);
             restored.setStateInformation(state.getData(),static_cast<int>(state.getSize()));
             const char* id=control==10?"harmony":"madness";
             waveCheck(std::abs(restored.parameters.getRawParameterValue(id)->load()-73.0f/127)<.001f,
@@ -136,7 +136,7 @@ inline void runSacredTests(const juce::File& root)
     p.flushMidiParameters(); send(1,127);
     waveCheck(p.modulation.load()==127 && std::abs(p.parameters.getRawParameterValue("madness")->load()-73.0f/127)<.001f,
         "Hesitation uses CC1 without rewriting saved Madness");
-    juce::MemoryBlock state; p.getStateInformation(state); DroneProcessor restored;
+    juce::MemoryBlock state; p.getStateInformation(state); DroneProcessor restored;neutralTestSound(restored);
     restored.setStateInformation(state.getData(),static_cast<int>(state.getSize()));
     waveCheck(restored.modulation.load()==0 && restored.parameters.getParameter("harmony")->isAutomatable()
         && restored.parameters.getParameter("madness")->isAutomatable(),"New parameters are automatable; transient Hesitation is excluded from saved state");
@@ -202,7 +202,7 @@ inline void runSacredTests(const juce::File& root)
     const double bendCents=1200*std::log2(static_cast<double>(heldPitch(100))/heldPitch(0));
     waveCheck(std::abs(bendCents-100)<8,"Doubt retains its full global semitone bend even with maximum Madness and Hesitation");
 
-    DroneProcessor stress;setPlain(stress,"attack",.005f);setPlain(stress,"release",2);setPlain(stress,"polyphony",16);
+    DroneProcessor stress;neutralTestSound(stress);setPlain(stress,"attack",.005f);setPlain(stress,"release",2);setPlain(stress,"polyphony",16);
     for(const char* id : {"harmony","madness","shimmer","reverb","delay"}) setPlain(stress,id,1);
     setPlain(stress,"master",yuro::maxMasterGain);
     for(const char* id : {"eqBass","eqMid","eqTreble"}) setPlain(stress,id,12);
@@ -233,7 +233,7 @@ inline void runSacredTests(const juce::File& root)
     waveCheck(stress.voices.load()==0 && audio.getMagnitude(0,256)==0,"Panic clears new voice modules and existing effect tails");
 
     // Smooth macro automation, including zero-to-maximum changes during a note.
-    DroneProcessor moving;setPlain(moving,"attack",.005f);moving.prepareToPlay(48000,256);
+    DroneProcessor moving;neutralTestSound(moving);setPlain(moving,"attack",.005f);moving.prepareToPlay(48000,256);
     float previous=0,maxStep=0;bool finite=true;
     for(int block=0;block<1500;++block)
     {

@@ -6,7 +6,7 @@
 
 inline void runPrayerbookTests()
 {
-    DroneProcessor p;
+    DroneProcessor p;neutralTestSound(p);
     p.prepareToPlay(48000, 256);
     juce::AudioBuffer<float> audio(2, 256);
     auto send = [&](juce::MidiMessage message)
@@ -37,7 +37,7 @@ inline void runPrayerbookTests()
     }
     waveCheck(p.padRouter.learned[7].load() == PadRouter::encode(2, 3, 57), "Learning captures actual Note/CC number and channel");
     juce::MemoryBlock learnedState; p.getStateInformation(learnedState);
-    DroneProcessor restored;
+    DroneProcessor restored;neutralTestSound(restored);
     restored.setStateInformation(learnedState.getData(), static_cast<int>(learnedState.getSize()));
     restored.prepareToPlay(48000, 256);
     waveCheck(restored.parameters.getRawParameterValue("padInput")->load() == 3, "Learned mode is saved even before the host timer flush");
@@ -127,7 +127,7 @@ inline void runPrayerbookTests()
         silent = fx.process(0);
         waveCheck(silent[0] == 0 && silent[1] == 0, "Panic fades and clears delay and reverb tails");
     }
-    DroneProcessor full;
+    DroneProcessor full;neutralTestSound(full);
     setPlain(full, "reverb", 1); setPlain(full, "delay", 1); setPlain(full, "attack", 0.005f);
     full.prepareToPlay(48000, 256);
     juce::MidiBuffer chord;

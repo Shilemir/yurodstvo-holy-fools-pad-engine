@@ -11,6 +11,9 @@ INSTALLATION
 5. Start at a moderate Master level; play MIDI or the interactive mouse keyboard.
 Keep only one version in scanned directories; its VST3 identity is unchanged.
 To uninstall, close the DAW, remove that bundle and rescan.
+NEW INSTANCE
+The Hermit is the default sound; saved host state takes precedence.
+
 CONTROLS AND ARCHETYPES
 E1 DEVOTION / Shimmer; E2 DUALISM / Balance; E3 PATIENCE / Attack;
 E4 REMEMBRANCE / Release; E5 SANCTUARY / Reverb; E6 SOLITUDE / Synced Delay;
@@ -33,8 +36,8 @@ LICENCE AND SOURCE
 GNU AGPL v3.0 only (AGPL-3.0-only). JUCE 9.0.4 uses its AGPL option.
 Keep LICENSES and provide complete Corresponding Source when redistributing
 binaries. Exact source, including JUCE, is provided in the same release:
-https://github.com/Shilemir/yurodstvo-holy-fools-pad-engine/releases/tag/v1.0.0
-See SOURCE-CODE.txt and YURODSTVO-v1.0.0-Corresponding-Source.zip.
+https://github.com/Shilemir/yurodstvo-holy-fools-pad-engine/releases/tag/v1.1.0
+See SOURCE-CODE.txt and YURODSTVO-v1.1.0-Corresponding-Source.zip.
 Third-party notices and OFL font remain intact. Only the owner's applicable
 rights in the AI PNG are dedicated under CC0-1.0; see ILLUSTRATION-NOTICE.txt.
 The KJV inscription retains its attribution and separate regional-rights notice.

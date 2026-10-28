@@ -12,7 +12,7 @@ inline void runWheelEQTests()
         && std::abs(DroneProcessor::pitchToCents(8193)) < 0.013f, "Pitch Bend retains 14-bit resolution around centre");
     waveCheck(ThreeBandEQ::ccToDb(0) == -15 && ThreeBandEQ::ccToDb(64) == 0 && ThreeBandEQ::ccToDb(127) == 15,
         "EQ CC endpoints and physical centre 64 map to -12, 0 and +12 dB");
-    DroneProcessor p; p.prepareToPlay(48000, 256); juce::AudioBuffer<float> audio(2, 256);
+    DroneProcessor p;neutralTestSound(p); p.prepareToPlay(48000, 256); juce::AudioBuffer<float> audio(2, 256);
     auto send = [&](juce::MidiMessage message) { juce::MidiBuffer m; m.addEvent(message, 0); p.processBlock(audio, m); };
     waveCheck(p.currentDetune() == 0 && p.modulation.load() == 0 && p.parameters.getRawParameterValue("eqBass")->load() == 0
         && p.parameters.getRawParameterValue("eqMid")->load() == 0 && p.parameters.getRawParameterValue("eqTreble")->load() == 0,
@@ -23,7 +23,7 @@ inline void runWheelEQTests()
     send(juce::MidiMessage::controllerEvent(1, 1, 127));
     waveCheck(p.modulation.load() == 127 && p.currentDetune() == 100, "CC1 updates Mod position without changing detune");
     juce::MemoryBlock saved; p.getStateInformation(saved);
-    DroneProcessor restored; restored.setStateInformation(saved.getData(), static_cast<int>(saved.getSize()));
+    DroneProcessor restored;neutralTestSound(restored); restored.setStateInformation(saved.getData(), static_cast<int>(saved.getSize()));
     waveCheck(restored.currentDetune() == 23 && restored.pitchValue.load() == 8192 && restored.modulation.load() == 0,
         "Saving while Pitch is held preserves base automation but excludes temporary Pitch and Mod positions");
     restored.prepareToPlay(48000, 256);
@@ -51,7 +51,7 @@ inline void runWheelEQTests()
         "Loading an old state into a reused instance resets all missing EQ bands to neutral");
     restored.setPitchFromMidi(8192);
     waveCheck(restored.currentDetune() == 0, "Even a legacy preset returns to zero on a physical centre message");
-    restored.getStateInformation(saved); DroneProcessor oldAgain;
+    restored.getStateInformation(saved); DroneProcessor oldAgain;neutralTestSound(oldAgain);
     oldAgain.setStateInformation(saved.getData(), static_cast<int>(saved.getSize()));
     waveCheck(oldAgain.currentDetune() == 0 && oldAgain.parameters.getRawParameterValue("detune")->load() == 25, "Transient wheel centring does not overwrite the legacy preset base");
     setPlain(p, "detune", 0); setPlain(p, "attack", 0.005f); setPlain(p, "mix", 1); setPlain(p, "master", 1); setPlain(p, "pitchDetune", 0);
@@ -109,7 +109,7 @@ inline void runWheelEQTests()
         }
         waveCheck(stable && maxStep < 0.1f, "Rapid three-band EQ automation is stable and has no large discontinuities");
     }
-    DroneProcessor a, b; a.prepareToPlay(48000, 256); b.prepareToPlay(48000, 256);
+    DroneProcessor a, b;neutralTestSound(a);neutralTestSound(b); a.prepareToPlay(48000, 256); b.prepareToPlay(48000, 256);
     juce::AudioBuffer<float> other(2, 256); bool noModSound = true;
     for (int block = 0; block < 12; ++block)
     {
@@ -141,7 +141,7 @@ inline void runWheelEQTests()
         glyphs = glyphs && present;
     }
     waveCheck(glyphs, "Embedded ecclesiastical typeface contains every KJV inscription glyph");
-    DroneProcessor full; setPlain(full, "reverb", 1); setPlain(full, "delay", 1); setPlain(full, "attack", 0.005f);
+    DroneProcessor full;neutralTestSound(full); setPlain(full, "reverb", 1); setPlain(full, "delay", 1); setPlain(full, "attack", 0.005f);
     setPlain(full, "eqBass", 12); setPlain(full, "eqMid", 12); setPlain(full, "eqTreble", 12); full.prepareToPlay(48000, 256);
     bool safe = true;
     for (int block = 0; block < 400; ++block)

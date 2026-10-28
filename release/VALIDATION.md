@@ -1,22 +1,25 @@
-# Stable 1.0.0 publication validation
+# Stable 1.1.0 publication validation
 
-Both Windows x64 Release formats are built from one committed reviewed public
-tree, identified by v1.0.0. JUCE 9.0.4/MSVC and static runtime are retained.
-The C++ Source and Tests trees are identical to the approved local 1.0.0 tag;
-only publication documentation, source export and packaging are prepared here.
+Both Windows x64 Release formats are built from the same clean, reviewed public
+commit identified by v1.1.0, extending public v1.0.0 without private ancestry.
+The complete Source and Tests trees match the approved local 1.1 implementation.
+Publication changes only documentation and distribution materials; no further
+sound, preset, interface, parameter-ID, MIDI-map or VST3-identity changes are made.
 
-The release process checks clean compilation, CTest and the extracted VST3;
-five archetypes/Custom persistence; approved Hierophant and Harmony calibration;
-quote/attribution, version label, keyboard, tempo sync, MIDI/state and existing
-VST3 identities. x64 metadata, exact embedded PNG/font, complete bundle paths,
-licences, source manifest, SHA-256 and public downloads are verified.
-Measured counts/results are appended to the published release notes. TEST_REPORT.md
-also preserves historical local runs, which are not new publication measurements.
+JUCE 9.0.4/MSVC and the static runtime are retained. A fresh public build and
+the extracted VST3 ZIP must pass CTest/technical checks before upload. Packaging
+checks version/x64/name, exact embedded PNG/font, static-runtime imports, full
+bundle structure, notices, source manifest and ZIP/SHA-256 roundtrips. Measured
+results and public-download verification are recorded in the release notes.
+TEST_REPORT.md retains the preceding local 685-check run and its limits.
 
-Optional local reference binaries can be used in a separate regression run but
-are not required or distributed. Custom tests use project-local fixtures and do
-not change the user's THE FOOL file. No new Ableton, physical MiniLab, listening,
-other-PC, Windows 10/ARM or all-DAW testing is claimed. Binaries are unsigned.
+Tests cover exact presets, preserved Hierophant/Custom, fresh Hermit defaults,
+actual VST3 saved state, independent keyboard ownership/cancellation and existing
+DSP/routing/state/UI behavior. Native Windows keyboard interaction could not be
+automated because app-control access was not approved. No physical MiniLab,
+Ableton, listening, second-PC, Windows 10/ARM or all-DAW test is claimed.
+Unsigned binaries; computer-key rollover depends on hardware.
 
-Old Releases may be removed only after stable/latest and download verification.
-Their Git tags/commits and local project/history must remain unchanged.
+Only after stable/Latest and anonymous download/hash verification may the owner-
+authorized older Releases be removed. Inventory releases first; preserve all
+tags, branches, commits and local files. Do not remove unclear releases.

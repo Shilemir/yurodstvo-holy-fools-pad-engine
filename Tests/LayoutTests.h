@@ -5,7 +5,7 @@
 
 inline void runLayoutTests()
 {
-    DroneProcessor p;
+    DroneProcessor p;neutralTestSound(p);
     setPlain(p,"attack",.005f);setPlain(p,"release",.25f);
     p.prepareToPlay(48000,256);
     std::unique_ptr<juce::AudioProcessorEditor> editor(p.createEditor());

@@ -12,7 +12,7 @@ inline void runKeyboardTests()
     waveCheck(image.isValid()&&image.getWidth()==1536&&image.getHeight()==1024,"Official PNG decodes entirely from embedded plugin resources");
     int oldBytes=0;
     waveCheck(YuroAssets::getNamedResource("tye_andrey_jpg",oldBytes)==nullptr,"Previous icon is no longer part of BinaryData");
-    DroneProcessor p;setPlain(p,"attack",0.005f);setPlain(p,"release",0.005f);p.prepareToPlay(48000,256);
+    DroneProcessor p;neutralTestSound(p);setPlain(p,"attack",0.005f);setPlain(p,"release",0.005f);p.prepareToPlay(48000,256);
     juce::AudioBuffer<float> audio(2,256);
     auto process=[&](int blocks=1)
     {
@@ -71,7 +71,7 @@ inline void runKeyboardTests()
     send(juce::MidiMessage::controllerEvent(1,64,0));process(10);
     waveCheck(p.voices.load()==0,"Sustain release leaves no stuck notes from either source");
     keys->pressAt(c);process();juce::MemoryBlock saved;p.getStateInformation(saved);
-    DroneProcessor restored;restored.setStateInformation(saved.getData(),static_cast<int>(saved.getSize()));restored.prepareToPlay(48000,256);
+    DroneProcessor restored;neutralTestSound(restored);restored.setStateInformation(saved.getData(),static_cast<int>(saved.getSize()));restored.prepareToPlay(48000,256);
     {juce::MidiBuffer m;restored.processBlock(audio,m);}
     waveCheck(restored.voices.load()==0,"Held mouse gesture is transient and is not restored from a preset");
     p.setStateInformation(saved.getData(),static_cast<int>(saved.getSize()));process(10);keys->checkPointerSafety(true,true);process();

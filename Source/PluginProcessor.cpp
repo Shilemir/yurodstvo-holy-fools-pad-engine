@@ -8,7 +8,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout DroneProcessor::makeParamete
     juce::AudioProcessorValueTreeState::ParameterLayout result;
     const std::array<const char*, 5> names { "Oscillator Detune", "Oscillator Mix", "Attack", "Release", "Master Volume" };
     const std::array<const char*, 5> units { "cent", "", "s", "s", "" };
-    const std::array<float, 5> defaults { 7, 0.5f, 4, 8, 0.65f };
+    const std::array<float, 5> defaults { 7, yuro::archetypes[0].values[1], 4, 8, 0.65f };
     std::array<juce::NormalisableRange<float>, 5> ranges {
         juce::NormalisableRange<float>(-50, 50, 0.01f),
         juce::NormalisableRange<float>(0, 1, 0.0001f),
@@ -21,24 +21,24 @@ juce::AudioProcessorValueTreeState::ParameterLayout DroneProcessor::makeParamete
             names[i], ranges[i], defaults[i], juce::AudioParameterFloatAttributes().withLabel(units[i])));
     const juce::StringArray shapes { "Sine", "Triangle", "Sawtooth", "Square" };
     result.add(std::make_unique<juce::AudioParameterChoice>(juce::ParameterID("osc1Waveform", 1), "Oscillator 1 Waveform", shapes, 0));
-    result.add(std::make_unique<juce::AudioParameterChoice>(juce::ParameterID("osc2Waveform", 1), "Oscillator 2 Waveform", shapes, 0));
+    result.add(std::make_unique<juce::AudioParameterChoice>(juce::ParameterID("osc2Waveform", 1), "Oscillator 2 Waveform", shapes, 1));
     result.add(std::make_unique<juce::AudioParameterInt>(juce::ParameterID("padChannel", 1), "Pad MIDI Channel (0 = Any)", 0, 16, 0));
     result.add(std::make_unique<juce::AudioParameterInt>(juce::ParameterID("padFirstNote", 1), "Pad First Note", 0, 120, 36));
     result.add(std::make_unique<juce::AudioParameterInt>(juce::ParameterID("padFirstCC", 1), "Pad First CC", 0, 120, 102));
     result.add(std::make_unique<juce::AudioParameterChoice>(juce::ParameterID("padInput", 1), "Pad Input Type", juce::StringArray { "Notes", "CC", "MiniLab Auto", "Learned" }, 2));
-    result.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("reverb", 1), "Reverb", juce::NormalisableRange<float>(0, 1, 0.0001f), 0.0f));
-    result.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("delay", 1), "Delay", juce::NormalisableRange<float>(0, 1, 0.0001f), 0.0f));
+    result.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("reverb", 1), "Reverb", juce::NormalisableRange<float>(0, 1, 0.0001f), .541f));
+    result.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("delay", 1), "Delay", juce::NormalisableRange<float>(0, 1, 0.0001f), .15f));
     for (const auto& band : { std::pair<const char*, const char*>("eqBass", "Bass"), { "eqMid", "Mid" }, { "eqTreble", "Treble" } })
         result.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(band.first, 1), band.second,
             juce::NormalisableRange<float>(-yuro::maxEqDb, yuro::maxEqDb, 0.01f), 0.0f, juce::AudioParameterFloatAttributes().withLabel("dB")));
     result.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("pitchDetune", 1), "Pitch Detune",
         juce::NormalisableRange<float>(-100, 100), 0.0f, juce::AudioParameterFloatAttributes().withLabel("ct")));
     result.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("shimmer", 1), "Shimmer",
-        juce::NormalisableRange<float>(0, 1, 0.0001f), 0.0f));
+        juce::NormalisableRange<float>(0, 1, 0.0001f), .184f));
     result.add(std::make_unique<juce::AudioParameterInt>(juce::ParameterID("polyphony", 1), "Polyphony", 1, 16, 8));
     for (const auto& item : { std::pair<const char*,const char*>("harmony","Harmony"), {"madness","Madness"} })
         result.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(item.first,1), item.second,
-            juce::NormalisableRange<float>(0,1,.0001f),0.0f));
+            juce::NormalisableRange<float>(0,1,.0001f),juce::String(item.first)=="harmony" ? .33f : .08f));
     return result;
 }
 DroneProcessor::DroneProcessor()
@@ -139,6 +139,7 @@ std::array<float, yuro::parameterCount> DroneProcessor::effectiveValues() const
 void DroneProcessor::prepareToPlay(double sr, int)
 {
     engine.prepare(sr, true);
+    releaseComputerNotes();audioComputerNotes.fill(false);
     mouseInput.suppress(); audioMouseNote = -1; mouseEpoch.fetch_add(1);
     cancelMouseRequested.store(false); voices.store(0); for (auto& note : notes) note.store(false);
     for(auto& level:noteLevels)level.store(0);
@@ -191,7 +192,7 @@ void DroneProcessor::processBlock(juce::AudioBuffer<float>& audio, juce::MidiBuf
     const int firstCC = juce::roundToInt(padConfig[2]->load());
     const int padMode = juce::roundToInt(padConfig[3]->load());
     if (cancelMouseRequested.exchange(false)) cancelMouseInputThrough(cancelMouseThrough.load());
-    if (panicRequested.exchange(false)) { engine.allNotesOff(0, true); effects.beginPanic(); cancelMouseInput(); }
+    if (panicRequested.exchange(false)) { engine.allNotesOff(0, true); effects.beginPanic(); cancelMouseInput(); releaseComputerNotes(); }
     mouseInput.drain([&](int note)
     {
         if (note == audioMouseNote) return;
@@ -202,6 +203,17 @@ void DroneProcessor::processBlock(juce::AudioBuffer<float>& audio, juce::MidiBuf
         lastMidiType.store(note >= 0 ? 1 : 2); lastMidiChannel.store(1);
         lastNote.store(note >= 0 ? note : previous);
     });
+    for(size_t n=0;n<audioComputerNotes.size();++n)
+    {
+        const bool down=acceptsComputerKeyboard()&&computerNotes[n].load()&&!isReservedNote(static_cast<int>(n));
+        if(down!=audioComputerNotes[n])
+        {
+            if(down)engine.noteOn(1,static_cast<int>(n),.8f,2);
+            else engine.noteOff(1,static_cast<int>(n),2);
+            lastMidiType.store(down?1:2);lastMidiChannel.store(1);lastNote.store(static_cast<int>(n));
+            audioComputerNotes[n]=down;
+        }
+    }
     int cursor = 0;
     float blockPeak = 0;
     auto renderUntil = [&](int end)
@@ -572,6 +584,7 @@ void DroneProcessor::setStateInformation(const void* data, int size)
             for (auto& p : pendingEffects) p.store(-1);
             for (auto& p : pendingEQ) p.store(-1);
             cancelMouseThrough.store(mouseInput.watermark()); cancelMouseRequested.store(true); mouseEpoch.fetch_add(1);
+            releaseComputerNotes();
             pendingShimmer.store(-1);
             for(size_t i=6;i<10;++i)pickupArmed[i].store(true);
             for(size_t i=0;i<encoderRelative.size();++i)if(i<6 || i>=10)encoderRelative[i].store(true);

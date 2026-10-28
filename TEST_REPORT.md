@@ -1,3 +1,53 @@
+# Local 1.1.0 validation — 2026-10-28
+
+Fresh Windows x64 Release configuration and builds succeeded for Standalone,
+VST3 and YurodstvoTests, using JUCE 9.0.4 and MSVC 19.51 with the static MSVC
+runtime. `ctest --test-dir build-1.1.0 -C Release --output-on-failure` passed
+**685 checks, zero failures** (TechnicalChecks: 36.04 seconds).
+
+- Exact macro, EQ and waveform values pass for the three calibrated archetypes.
+  The Hierophant matches the 1.0.0 configuration, including Hell -1.0 dB.
+  Factory selection preserves Master, polyphony and expression. Custom save/load
+  tests use a project-local fixture and leave the user's persistent file untouched.
+- Fresh processor and actual VST3 wrapper defaults match The Hermit. The fresh
+  editor selects it without MODIFIED. Arbitrary saved processor state survives
+  editor reopening, and actual VST3 wrapper state survives a second hosted instance.
+- Computer-key tests cover the MIDI 48/52/55 chord, upper C, held/repeated keys,
+  note-off, octave/focus cancellation and release-before-retrigger behavior.
+  Shared-engine tests cover overlapping computer/MIDI/mouse ownership and
+  exclusion of waveform-pad notes. The VST3 wrapper rejects computer input.
+- Existing routing, takeover, state migration, pad, waveform, polyphony, prayer,
+  custom sound, EQ, effects, tempo-sync, envelope/glow and signal tests pass.
+  Signal tests explicitly restore neutral fixtures so the new musical startup
+  defaults do not alter their DSP comparisons.
+- The rendered editor image `docs/images/interface-1.1.png` was visually checked:
+  v1.1, selected Hermit, calibrated values, compact brown two-row monitor,
+  separated headings, no E/F labels, intact illustration and KJV inscription.
+  An automated check also confirms the brown monitor and the actual Attack CC tooltip.
+- Both final binaries report product/file version 1.1.0, the unchanged full
+  product name and x64 architecture. Byte comparisons locate the exact official
+  PNG and font inside each binary. Import inspection finds no external MSVC
+  runtime DLL requirement. Both VST3 class IDs match 1.0.0. The copied bundle
+  preserves its Contents structure and includes the complete dependency notices.
+
+The public 1.1.0 publication extends the existing public 1.0.0 commit
+`ac0141dbc0b5d26d4a02f023be520016e0503669`. Historical public tags and commits
+are preserved. Fresh public-build and extracted-ZIP measurements are recorded
+in release/VALIDATION.md and the published release notes.
+
+Logs are under `artifacts/v1.1-*.log` and
+`build-1.1.0/Testing/Temporary/LastTest.log`. Local outputs are under
+`artifacts/1.1.0/`. Version and dependency inspection is recorded there.
+
+Limits: native Windows app control was not approved by the computer-use tool,
+so real OS key/focus interaction is not claimed as tested. Keyboard behavior
+was tested through the state helper and shared processor/engine, not physical
+key presses. No physical MiniLab 3, Ableton session, listening evaluation or
+second-PC installation test was performed. Simultaneous key count depends on
+hardware rollover. Binaries are unsigned. These local checks preceded the fresh public release build.
+
+---
+
 # Official 1.0.0 publication
 
 New publication measurements are recorded in the [v1.0.0 release notes](https://github.com/Shilemir/yurodstvo-holy-fools-pad-engine/releases/tag/v1.0.0).

@@ -38,7 +38,7 @@ public:
 private:
     struct Voice
     {
-        int note = -1, channel = 1, source = 0; // 0 = host MIDI, 1 = on-screen mouse.
+        int note = -1, channel = 1, source = 0; // 0 = host MIDI, 1 = mouse, 2 = computer keys.
         uint64_t age = 0;
         double phase1 = 0, phase2 = 0, frequency = 0;
         float envelope = 0, velocity = 0, releaseStart = 0;

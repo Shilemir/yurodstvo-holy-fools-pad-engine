@@ -6,7 +6,7 @@
 inline void runInspirationTests(const juce::File& root)
 {
     constexpr std::array<const char*,13> ids {"shimmer","mix","attack","release","reverb","delay","harmony","madness","eqBass","eqMid","eqTreble","osc1Waveform","osc2Waveform"};
-    DroneProcessor p; p.prepareToPlay(48000,256);setPlain(p,"master",.4321f);setPlain(p,"polyphony",3);
+    DroneProcessor p;neutralTestSound(p); p.prepareToPlay(48000,256);setPlain(p,"master",.4321f);setPlain(p,"polyphony",3);
     p.setPitchFromMidi(12000);p.setModulation(99);
     const float master=p.parameters.getRawParameterValue("master")->load(),pitch=p.currentDetune();
     auto before=p.parameters.copyState();
@@ -36,7 +36,7 @@ inline void runInspirationTests(const juce::File& root)
     waveCheck(preserved,"Prayers preserve Master, physical Doubt, Faith, polyphony, legacy detune and all MIDI settings");
     waveCheck(*std::min_element(first.begin(),first.end())>0 && *std::min_element(second.begin(),second.end())>0 && matching>0,
         "Both oscillators independently explore all shapes, including matching waveforms");
-    juce::MemoryBlock state;p.getStateInformation(state);DroneProcessor restored;
+    juce::MemoryBlock state;p.getStateInformation(state);DroneProcessor restored;neutralTestSound(restored);
     restored.setStateInformation(state.getData(),static_cast<int>(state.getSize()));bool saved=true;
     for(const auto* id:ids)saved=saved && p.parameters.getRawParameterValue(id)->load()==restored.parameters.getRawParameterValue(id)->load();
     waveCheck(saved&&restored.parameters.getRawParameterValue("master")->load()==master,"Randomized parameters and waveforms round-trip through the saved host state");
@@ -69,7 +69,7 @@ inline void runInspirationTests(const juce::File& root)
     }
     waveCheck(pads&&faders,"Prayer immediately synchronizes EQ faders, unchanged Master and active waveform pads");
 
-    DroneProcessor pickup;pickup.prepareToPlay(48000,256);pickup.randomizeSound();juce::AudioBuffer<float> audio(2,256);
+    DroneProcessor pickup;neutralTestSound(pickup);pickup.prepareToPlay(48000,256);pickup.randomizeSound();juce::AudioBuffer<float> audio(2,256);
     auto send=[&](int cc,int value){juce::MidiBuffer m;m.addEvent(juce::MidiMessage::controllerEvent(1,cc,value),0);pickup.processBlock(audio,m);pickup.flushMidiParameters();};
     const float mix=pickup.parameters.getRawParameterValue("mix")->load();const int far=mix>.5f?0:127;
     send(71,far);waveCheck(pickup.parameters.getRawParameterValue("mix")->load()==mix,"First unseen encoder CC establishes a baseline without a jump");
@@ -131,7 +131,7 @@ inline void runInspirationTests(const juce::File& root)
     }
     waveCheck(repeated>.001,"A later shaped strike audibly re-excites the actual resonator bank without resetting its tail");
 
-    DroneProcessor glow;setPlain(glow,"attack",.005f);setPlain(glow,"release",.5f);glow.prepareToPlay(48000,256);
+    DroneProcessor glow;neutralTestSound(glow);setPlain(glow,"attack",.005f);setPlain(glow,"release",.5f);glow.prepareToPlay(48000,256);
     juce::MidiBuffer on;on.addEvent(juce::MidiMessage::noteOn(1,60,.8f),0);on.addEvent(juce::MidiMessage::noteOn(1,61,.8f),0);glow.processBlock(audio,on);
     for(int i=0;i<100;++i){juce::MidiBuffer m;glow.processBlock(audio,m);}
     PlayableKeyboard keys(glow);keys.setSize(945,80);juce::Image glowSheet(juce::Image::RGB,945,240,true);
@@ -148,7 +148,7 @@ inline void runInspirationTests(const juce::File& root)
     }
     auto glowPng=root.getChildFile("Release-glow-states.png").createOutputStream();juce::PNGImageFormat().writeImageToStream(glowSheet,*glowPng);
 
-    DroneProcessor moving;setPlain(moving,"attack",.005f);setPlain(moving,"polyphony",16);setPlain(moving,"master",.65f);moving.prepareToPlay(48000,256);
+    DroneProcessor moving;neutralTestSound(moving);setPlain(moving,"attack",.005f);setPlain(moving,"polyphony",16);setPlain(moving,"master",.65f);moving.prepareToPlay(48000,256);
     bool safe=true;float peak=0;double elapsed=0;
     for(int block=0;block<3000;++block)
     {

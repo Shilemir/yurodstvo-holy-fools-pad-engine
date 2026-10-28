@@ -9,6 +9,7 @@
 #include "ThreeBandEQ.h"
 #include "MouseNoteInput.h"
 #include "SoundPresets.h"
+#include "ComputerKeyboard.h"
 
 class DroneProcessor final : public juce::AudioProcessor, private juce::Timer, private juce::AudioProcessorValueTreeState::Listener
 {
@@ -16,7 +17,7 @@ public:
     DroneProcessor();
     ~DroneProcessor() override;
     void prepareToPlay(double, int) override;
-    void releaseResources() override { cancelMouseThrough.store(mouseInput.watermark()); cancelMouseRequested.store(true); mouseEpoch.fetch_add(1); }
+    void releaseResources() override { cancelMouseThrough.store(mouseInput.watermark()); cancelMouseRequested.store(true); mouseEpoch.fetch_add(1); releaseComputerNotes(); }
     bool isBusesLayoutSupported(const BusesLayout&) const override;
     void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
     juce::AudioProcessorEditor* createEditor() override;
@@ -70,7 +71,16 @@ public:
     int polyphonyLimit() const { return juce::roundToInt(polyphonyRaw->load()); }
     void setMouseNote(int note) { mouseInput.post(note >= 0 && note <= 127 && !isReservedNote(note) ? note : -1); }
     std::atomic<unsigned> mouseEpoch {0};
+    bool acceptsComputerKeyboard() const {return wrapperType==wrapperType_Standalone;}
+    void setComputerNotes(const ComputerKeyboard::Notes& target)
+    {
+        for(size_t n=0;n<target.size();++n)computerNotes[n].store(acceptsComputerKeyboard()&&target[n]&&!isReservedNote(static_cast<int>(n)));
+    }
+    void releaseComputerNotes() {for(auto& n:computerNotes)n.store(false);computerEpoch.fetch_add(1);}
+    std::atomic<unsigned> computerEpoch {0};
 private:
+    std::array<std::atomic<bool>,128> computerNotes {};
+    std::array<bool,128> audioComputerNotes {};
     juce::Random inspirationRandom;
     std::array<std::atomic<bool>,12> pickupArmed {};
     std::array<std::atomic<bool>,12> encoderRelative {};

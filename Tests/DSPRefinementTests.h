@@ -81,7 +81,7 @@ inline void runDSPRefinementTests(const juce::File& root)
     // retain a non-zero relative offset to catch accidental retuning of oscillator II.
     for (int osc=0; osc<2; ++osc)
     {
-        DroneProcessor p; setPlain(p,"attack",.005f); setPlain(p,"detune",25); setPlain(p,"mix",static_cast<float>(osc));
+        DroneProcessor p;neutralTestSound(p); setPlain(p,"attack",.005f); setPlain(p,"detune",25); setPlain(p,"mix",static_cast<float>(osc));
         p.prepareToPlay(48000,256); juce::AudioBuffer<float> a(2,256);
         for (int bend : {0,8192,16383})
         {

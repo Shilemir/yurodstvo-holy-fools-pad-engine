@@ -132,10 +132,10 @@ inline void runShimmerPolyTests(const juce::File& root)
         engine.sustain(1,false); engine.allNotesOff(0,true); for (int i = 0; i < 1000; ++i) engine.nextSample();
         waveCheck(engine.activeVoices() == 0, "Sustain release and panic leave no stuck voices after polyphony changes");
     }
-    DroneProcessor state; setPlain(state,"polyphony",16); setPlain(state,"shimmer",0.63f);
+    DroneProcessor state;neutralTestSound(state); setPlain(state,"polyphony",16); setPlain(state,"shimmer",0.63f);
     state.prepareToPlay(48000,256); juce::AudioBuffer<float> audio(2,256); juce::MidiBuffer m;
     m.addEvent(juce::MidiMessage::controllerEvent(1,86,50), 21); state.processBlock(audio,m);
-    juce::MemoryBlock saved; state.getStateInformation(saved); DroneProcessor restored;
+    juce::MemoryBlock saved; state.getStateInformation(saved); DroneProcessor restored;neutralTestSound(restored);
     restored.setStateInformation(saved.getData(), static_cast<int>(saved.getSize()));
     waveCheck(restored.polyphonyLimit() == 16 && std::abs(restored.parameters.getRawParameterValue("shimmer")->load()-50.0f/127)<0.0001f
         && restored.parameters.getParameter("shimmer")->isAutomatable() && restored.parameters.getParameter("polyphony")->isAutomatable(),
@@ -167,7 +167,7 @@ inline void runShimmerPolyTests(const juce::File& root)
     selector->setValue(3,juce::sendNotificationSync); shimmerKnob->setValue(0.37,juce::sendNotificationSync);
     waveCheck(state.polyphonyLimit()==3 && std::abs(state.parameters.getRawParameterValue("shimmer")->load()-0.37f)<0.001,
         "Mouse polyphony and Shimmer edit their host parameters");
-    DroneProcessor full; setPlain(full,"polyphony",16); setPlain(full,"shimmer",1); setPlain(full,"reverb",1); setPlain(full,"delay",1);
+    DroneProcessor full;neutralTestSound(full); setPlain(full,"polyphony",16); setPlain(full,"shimmer",1); setPlain(full,"reverb",1); setPlain(full,"delay",1);
     setPlain(full,"eqBass",12); setPlain(full,"eqMid",12); setPlain(full,"eqTreble",12); setPlain(full,"attack",0.005f); setPlain(full,"release",30);
     full.prepareToPlay(48000,256); bool safe=true; double total=0,worst=0; float peak=0;
     for(int block=0;block<1500;++block)
@@ -212,7 +212,7 @@ inline void compareNominalVSTLevels(const juce::File& root, const juce::String& 
     {
         juce::VST3PluginFormat format; juce::OwnedArray<juce::PluginDescription> descriptions; format.findAllTypesForFile(descriptions,path);
         if(descriptions.isEmpty()) throw std::runtime_error("Cannot scan nominal comparison VST3");
-        juce::String error; auto instance=format.createInstanceFromDescription(*descriptions[0],48000,512,error);
+        juce::String error; auto instance=format.createInstanceFromDescription(*descriptions[0],48000,512,error);if(instance)neutralHostSound(*instance);
         if(!instance) throw std::runtime_error(error.toStdString());
         for(auto* p:instance->getParameters())
         {

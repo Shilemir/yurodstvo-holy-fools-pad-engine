@@ -176,7 +176,7 @@ void DroneEngine::noteOff(int channel, int note, int source)
         if (v.note == note && v.channel == channel && v.source == source && v.held)
         {
             v.held = false;
-            if (source == 1 || !pedals[static_cast<size_t>(channel - 1)]) v.stop();
+            if (source != 0 || !pedals[static_cast<size_t>(channel - 1)]) v.stop();
         }
 }
 void DroneEngine::sustain(int channel, bool down)

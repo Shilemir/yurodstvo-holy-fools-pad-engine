@@ -1,3 +1,19 @@
+# 1.1.0 — Stable archetype and interface update
+
+- Recalibrates The Hermit, The Martyr and The Inquisitor to the artist's exact
+  macro, EQ and waveform settings. The Hierophant and persistent Custom slot
+  remain unchanged; factory selection preserves Master, expression and polyphony.
+- Uses The Hermit as the fresh-instance default, without overriding restored
+  host state or changing sound when reopening the editor.
+- Compacts the warm brown MIDI/audio monitor to two rows, separates Polyphony
+  and Archetypes, removes visible E/F control numbers and shortens tooltips
+  using the existing User and DAW CC routes.
+- Adds Standalone-only computer-keyboard notes with octave navigation,
+  independent source ownership, repeat suppression and focus/lifecycle cleanup.
+- Sets version 1.1.0 / v1.1. Preserves parameter IDs, VST3 identity, MIDI maps,
+  DSP algorithms, licensing and the prior Harmony +2 dB calibration.
+- Windows x64 Release builds and 685 automated checks pass. Fresh public-build measurements are recorded in the release notes. See VERSION-1.1.md and TEST_REPORT.md.
+
 # Official stable publication — 1.0.0
 
 - Publishes the approved Synth for Arturia MiniLab3 implementation as the stable reference.

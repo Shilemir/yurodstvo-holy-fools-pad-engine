@@ -17,6 +17,22 @@ inline void setPlain(DroneProcessor& processor, const char* id, float value)
     auto* p = processor.parameters.getParameter(id);
     p->setValueNotifyingHost(p->convertTo0to1(value));
 }
+// Existing signal tests deliberately use the former neutral patch, independently
+// of the artist-selected factory startup sound tested in Version11Tests.h.
+inline void neutralTestSound(DroneProcessor& p)
+{
+    for(const auto* id:{"shimmer","reverb","delay","harmony","madness","eqBass","eqMid","eqTreble","osc1Waveform","osc2Waveform"})setPlain(p,id,0);
+    setPlain(p,"mix",.5f);setPlain(p,"attack",4);setPlain(p,"release",8);
+}
+inline void neutralHostSound(juce::AudioPluginInstance& p)
+{
+    for(auto* parameter:p.getParameters())
+    {
+        const auto name=parameter->getName(80);
+        if(name=="Shimmer"||name=="Reverb"||name=="Delay"||name=="Harmony"||name=="Madness"||name=="Oscillator 1 Waveform"||name=="Oscillator 2 Waveform")parameter->setValueNotifyingHost(0);
+        if(name=="Oscillator Mix"||name=="Bass"||name=="Mid"||name=="Treble")parameter->setValueNotifyingHost(.5f);
+    }
+}
 inline void runWaveformTests()
 {
     auto tables = std::make_unique<yuro::WaveTables>();
@@ -134,7 +150,7 @@ inline void runWaveformTests()
     std::cout << "Eight-voice rapid-morph render: " << duration << " ms per 1000 ms audio" << std::endl;
     waveCheck(safePolyphony && stress.activeVoices() == 8, "All sixteen waveform pairs render safely under eight-voice morph stress");
 
-    DroneProcessor processor;
+    DroneProcessor processor;neutralTestSound(processor);
     processor.prepareToPlay(48000, 128);
     juce::AudioBuffer<float> audio(2, 128);
     auto send = [&](juce::MidiMessage event)
@@ -169,7 +185,7 @@ inline void runWaveformTests()
     waveCheck(processor.parameters.getRawParameterValue("mix")->load() == 1, "Encoder CC mapping coexists with pad CC mapping");
     send(juce::MidiMessage::controllerEvent(1, 109, 127));
     juce::MemoryBlock state; processor.getStateInformation(state);
-    DroneProcessor restored; restored.setStateInformation(state.getData(), static_cast<int>(state.getSize()));
+    DroneProcessor restored;neutralTestSound(restored); restored.setStateInformation(state.getData(), static_cast<int>(state.getSize()));
     waveCheck(restored.currentWaveform(0) == 2 && restored.currentWaveform(1) == 3, "Both waveforms survive save before the UI timer flushes");
     waveCheck(restored.parameters.getRawParameterValue("padChannel")->load() == 0
         && restored.parameters.getRawParameterValue("padFirstNote")->load() == 44
