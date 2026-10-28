@@ -93,3 +93,14 @@ This review covers distribution of the instrument and its included components.
 It does not decide whether a particular proprietary host/plugin combination is
 a single derivative work, or grant a linking exception for JUCE. Do not infer a
 blanket proprietary-host redistribution exception from the MIT VST3 interfaces.
+## Scripture inscription
+
+The editor quotes 1 Corinthians 3:18 in the King James Version (KJV), with that
+translation and reference displayed. The quotation is not claimed as original
+project text or included in the owner's CC0 artwork dedication. This notice does
+not grant rights in a Bible translation where separate rights apply. Cambridge
+University Press administers Crown rights in the Authorized Version in the UK;
+its published permissions terms should be consulted for uses subject to those
+rights. No Cambridge permission or endorsement is asserted by this project.
+See https://www.cambridge.org/bibles/about/rights-and-permissions and
+https://assets.cambridge.org/97805211/63347/copyright/9780521163347_copyright_info.pdf.

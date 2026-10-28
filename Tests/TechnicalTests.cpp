@@ -16,6 +16,11 @@
 #include "SacredTests.h"
 #include "FaithTests.h"
 #include "InspirationTests.h"
+#include "NavigationTests.h"
+#include "LayoutTests.h"
+#include "ArchetypeTests.h"
+#include "StableGainTests.h"
+#include "RefinementTests.h"
 
 namespace
 {
@@ -36,13 +41,18 @@ int main(int argc, char** argv)
     juce::ScopedJuceInitialiser_GUI gui;
     try
     {
+        runNavigationTests();
+        runLayoutTests();
         runWaveformTests();
         runPrayerbookTests();
         runControlRoutingTests();
         runWheelEQTests();
         runKeyboardTests();
         const auto root = argc > 1 ? juce::File(juce::String(argv[1])) : juce::File::getCurrentWorkingDirectory().getChildFile("artifacts");
-        root.createDirectory(); runDSPRefinementTests(root); runShimmerPolyTests(root); runSacredTests(root); runInspirationTests(root);
+        root.createDirectory(); runArchetypeTests(root);
+        runStableGainTests(root,argc>2?juce::String(argv[2]):juce::String());
+        runRefinementTests(root,argc>2?juce::String(argv[2]):juce::String());
+        runDSPRefinementTests(root); runShimmerPolyTests(root); runSacredTests(root); runInspirationTests(root);
         yuro::DroneEngine engine;
         engine.prepare(48000);
         engine.setTargets({ 0, 0, 0.005f, 0.1f, 1 });
@@ -128,14 +138,14 @@ int main(int argc, char** argv)
         check(engine.activeVoices() == 0 && energy(engine, 100) == 0, "Panic fades to exact silence");
         for (auto sr : { 44100.0, 48000.0, 96000.0 })
         {
-            engine.prepare(sr); engine.setTargets({ 7, 0.5f, 30, 30, 1 }); energy(engine, static_cast<int>(sr / 10));
+            engine.prepare(sr); engine.setTargets({ 7, 0.5f, 20, 20, 1 }); energy(engine, static_cast<int>(sr / 10));
             engine.noteOn(1, 60, 1);
-            check(energy(engine, static_cast<int>(sr)) < 0.05f * yuro::outputBoost * 0.04f, "30-second attack starts gradually relative to nominal voice gain");
-            energy(engine, static_cast<int>(sr * 30));
+            check(energy(engine, static_cast<int>(sr)) < 0.05f * yuro::outputBoost * 0.06f, "20-second attack starts gradually relative to nominal voice gain");
+            energy(engine, static_cast<int>(sr * 20));
             check(energy(engine, 1000) > 0.03f, "Long attack reaches full level");
             engine.noteOff(1, 60);
-            check(energy(engine, static_cast<int>(sr)) > 0.025f, "30-second release preserves long tail");
-            energy(engine, static_cast<int>(sr * 31));
+            check(energy(engine, static_cast<int>(sr)) > 0.025f, "20-second release preserves long tail");
+            energy(engine, static_cast<int>(sr * 21));
             check(engine.activeVoices() == 0, "Long release finishes at multiple sample rates");
         }
         DroneProcessor processor;
@@ -165,8 +175,8 @@ int main(int argc, char** argv)
         std::unique_ptr<juce::AudioProcessorEditor> editor(processor.createEditor());
         juce::TextButton* panicButton = nullptr;
         for (auto* child : editor->getChildren())
-            if (auto* button = dynamic_cast<juce::TextButton*>(child)) if (button->getButtonText() == "PANIC / SILENCE") panicButton = button;
-        check(panicButton != nullptr && panicButton->getButtonText() == "PANIC / SILENCE", "Editor presents English button text");
+            if (auto* button = dynamic_cast<juce::TextButton*>(child)) if (button->getButtonText() == "SILENCE") panicButton = button;
+        check(panicButton != nullptr && panicButton->getButtonText() == "SILENCE", "Editor presents the Silence button");
         check(editor->getLookAndFeel().getTextButtonFont(*panicButton, 30).getTypefaceName() == "Ruslan Display", "Embedded Ruslan Display typeface loads without system installation");
         juce::Slider* detuneKnob = nullptr;
         juce::Slider* pitchWheel = nullptr;
@@ -204,9 +214,9 @@ int main(int argc, char** argv)
         // Render signed, longest EQ readouts for visual QA, not just default zeros.
         for (auto* child : editor->getChildren()) if (auto* slider = dynamic_cast<juce::Slider*>(child))
         {
-            if (child->getName() == "Fader 2") slider->setValue(12, juce::sendNotificationSync);
-            if (child->getName() == "Fader 3") slider->setValue(-12, juce::sendNotificationSync);
-            if (child->getName() == "Fader 4") slider->setValue(6, juce::sendNotificationSync);
+            if (child->getName() == "Fader 1") slider->setValue(12, juce::sendNotificationSync);
+            if (child->getName() == "Fader 2") slider->setValue(-12, juce::sendNotificationSync);
+            if (child->getName() == "Fader 3") slider->setValue(6, juce::sendNotificationSync);
         }
         const auto image = editor->createComponentSnapshot(editor->getLocalBounds(), true, 1.0f);
         auto stream = root.getChildFile("YURODSTVO-interface.png").createOutputStream();
@@ -229,7 +239,7 @@ int main(int argc, char** argv)
             juce::VST3PluginFormat format;
             juce::OwnedArray<juce::PluginDescription> descriptions;
             format.findAllTypesForFile(descriptions, juce::String(argv[2]));
-            check(descriptions.size() == 1 && descriptions[0]->isInstrument && descriptions[0]->name == "YURODSTVO - Holy Fool's Pad Engine", "VST3 loads under the Holy Fool instrument name");
+            check(descriptions.size() == 1 && descriptions[0]->isInstrument && descriptions[0]->name == yuro::productName, "VST3 loads under the new product name");
             juce::String error;
             auto instance = format.createInstanceFromDescription(*descriptions[0], 48000, 512, error);
             if (!instance) throw std::runtime_error(error.toStdString());
@@ -251,10 +261,10 @@ int main(int argc, char** argv)
             hostMidi.addEvent(juce::MidiMessage::controllerEvent(1, 87, 64), 180);
             hostMidi.addEvent(juce::MidiMessage::controllerEvent(1, 89, 12), 190);
             hostMidi.addEvent(juce::MidiMessage::controllerEvent(1, 90, 110), 200);
-            hostMidi.addEvent(juce::MidiMessage::controllerEvent(1, 14, 80), 210);
-            hostMidi.addEvent(juce::MidiMessage::controllerEvent(1, 15, 64), 220);
-            hostMidi.addEvent(juce::MidiMessage::controllerEvent(1, 30, 95), 230);
-            hostMidi.addEvent(juce::MidiMessage::controllerEvent(1, 31, 32), 240);
+            hostMidi.addEvent(juce::MidiMessage::controllerEvent(1, 14, 64), 210);
+            hostMidi.addEvent(juce::MidiMessage::controllerEvent(1, 15, 95), 220);
+            hostMidi.addEvent(juce::MidiMessage::controllerEvent(1, 30, 32), 230);
+            hostMidi.addEvent(juce::MidiMessage::controllerEvent(1, 31, 80), 240);
             hostMidi.addEvent(juce::MidiMessage::pitchWheel(1, 16383), 250);
             hostMidi.addEvent(juce::MidiMessage::controllerEvent(1, 1, 99), 260);
             float vstPeak = 0;
@@ -304,7 +314,7 @@ int main(int argc, char** argv)
             {
                 for (size_t band = 0; band < 3; ++band) if (parameter->getName(80) == eqNames[band])
                 {
-                    ++eqFound; eqSaved = eqSaved && std::abs(parameter->getValue() - (ThreeBandEQ::ccToDb(eqValues[band]) + 12) / 24) < 0.001f;
+                    ++eqFound; eqSaved = eqSaved && std::abs(parameter->getValue() - (ThreeBandEQ::ccToDb(eqValues[band]) + yuro::maxEqDb) / (2*yuro::maxEqDb)) < 0.001f;
                 }
                 if (parameter->getName(80) == "Pitch Detune") pitchNotSaved = std::abs(parameter->getValue() - 0.5f) < 0.001f;
             }

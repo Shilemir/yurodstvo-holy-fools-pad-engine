@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 cmake_minimum_required(VERSION 3.22)
-project(HolyFoolsPadEngine VERSION 0.10.1 LANGUAGES C CXX)
+project(HolyFoolsPadEngine VERSION 1.0.0 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(JUCE_PATH "" CACHE PATH "Optional path to an unmodified JUCE 9.0.4 source tree")
@@ -52,16 +52,18 @@ juce_add_plugin(Yurodstvo
     IS_SYNTH TRUE NEEDS_MIDI_INPUT TRUE NEEDS_MIDI_OUTPUT FALSE
     IS_MIDI_EFFECT FALSE EDITOR_WANTS_KEYBOARD_FOCUS FALSE
     COPY_PLUGIN_AFTER_BUILD FALSE
-    FORMATS Standalone VST3 PRODUCT_NAME "YURODSTVO - Holy Fool's Pad Engine"
+    FORMATS Standalone VST3 PRODUCT_NAME "YURODSTVO - Holy Fool's Synth for Arturia MiniLab3"
     # JUCE's factory builds Unicode class info from an ASCII VST3 class name.
-    PLUGIN_NAME "YURODSTVO - Holy Fool's Pad Engine"
+    PLUGIN_NAME "YURODSTVO - Holy Fool's Synth for Arturia MiniLab3"
     NEEDS_WEB_BROWSER FALSE NEEDS_CURL FALSE)
 # MSBuild's ATL condition cannot parse an apostrophe in a dependency filename.
 # Keep the public product name; only the internal static archive uses a plain name.
 set_target_properties(Yurodstvo PROPERTIES OUTPUT_NAME "YurodstvoSharedCode")
 target_sources(Yurodstvo PRIVATE
-    Source/DroneEngine.cpp Source/PluginProcessor.cpp Source/PluginEditor.cpp Source/AmbientEffects.cpp Source/ThreeBandEQ.cpp Source/Shimmer.cpp)
+    Source/DroneEngine.cpp Source/PluginProcessor.cpp Source/PluginEditor.cpp Source/AmbientEffects.cpp Source/ThreeBandEQ.cpp Source/Shimmer.cpp Source/SoundPresets.cpp)
 target_compile_definitions(Yurodstvo PUBLIC
+    YURO_VERSION="${PROJECT_VERSION}"
+    YURO_DISPLAY_VERSION="${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}"
     JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0 JUCE_VST3_CAN_REPLACE_VST2=0
     JUCE_VST3_EMULATE_MIDI_CC_WITH_PARAMETERS=1)
 if(MSVC)
@@ -92,7 +94,7 @@ if(YURO_BUILD_TESTS)
         set(nominal_baseline "")
     endif()
     add_test(NAME TechnicalChecks COMMAND YurodstvoTests "${CMAKE_CURRENT_SOURCE_DIR}/artifacts"
-        "${CMAKE_BINARY_DIR}/Yurodstvo_artefacts/$<CONFIG>/VST3/YURODSTVO - Holy Fool's Pad Engine.vst3" ${nominal_baseline})
+        "${CMAKE_BINARY_DIR}/Yurodstvo_artefacts/$<CONFIG>/VST3/YURODSTVO - Holy Fool's Synth for Arturia MiniLab3.vst3" ${nominal_baseline})
 endif()
 
 # JUCE 9.0.4's RC command does not depend on its generated Info.txt. Add the

@@ -1,3 +1,122 @@
+# Official 1.0.0 publication
+
+New publication measurements are recorded in the [v1.0.0 release notes](https://github.com/Shilemir/yurodstvo-holy-fools-pad-engine/releases/tag/v1.0.0).
+The historical local validation runs below predate this clean public build.
+
+---
+
+# Stable 1.0.0 local validation — 2026-10-28
+
+Clean Windows x64 Release builds of Standalone, VST3 and the technical test
+target succeeded with JUCE 9.0.4 and MSVC. `ctest --test-dir build-1.0-clean
+-C Release --output-on-failure` passed **655 checks, zero failures** in 36.11 s.
+
+- A controlled comparison against the actual 0.15.0 VST3 isolated the Harmony
+  return by subtracting a render at E7 = 0. The 1.0.0 / 0.15.0 amplitude ratio
+  was 1.25893 for both the initial and recurring bell windows, or +2.000 dB.
+  The dry oscillator samples matched to within 1e-6. The same deterministic
+  MIDI notes and modulation were used for both versions.
+- The 16-voice maximum stress render with Harmony, Shimmer, Reverb, Delay,
+  maximum EQ boost and Master produced finite samples. Peak reached the
+  existing 0.94 safety ceiling in this extreme case. This validates bounded
+  output, not a guaranteed uncompressed +2 dB at every final output level.
+- Factory archetype checks confirmed THE HIEROPHANT HELL = -1.0 dB, its other
+  settings and the remaining factory archetypes. Custom save/load, plugin
+  state, prayer, MIDI routing, polyphony, waveform, tempo sync and other
+  regression checks passed. Tests used a project-local Custom fixture; the
+  user's persistent THE FOOL file was untouched.
+- The standalone executable and VST3 module info report 1.0.0. The editor
+  screenshot was inspected and shows `v1.0`. The VST3 class ID remains
+  `ABCDEF019182FAEB5975726F59643031`. The illustration and font are embedded
+  through JUCE binary data, and the packaged VST3 contains the font notice.
+
+The automated tests do not establish behaviour in Ableton Live or with a
+physical Arturia MiniLab 3. Those require a final check on the user's setup.
+
+---
+
+# Local artist-calibrated archetype and inscription validation — 0.15.0
+
+Validated on 2026-10-28 with JUCE 9.0.4 and the installed MSVC toolchain.
+Windows x64 Release Standalone, VST3 and test targets built successfully.
+CTest: **651 checks passed**, zero failures; final run 34.36 seconds.
+
+- All four factory buttons loaded each of the thirteen specified plain parameter
+  values with a 0.0002 tolerance, including fractional percentages and dB.
+  The active button did not immediately show MODIFIED; a subsequent 0.1%
+  manual change did. Inquisitor's 66.6% Madness, +3.4 dB Hell and Saw/Square
+  selection were checked through GUI controls.
+- THE FOOL retained the 0.14.0 `custom-preset-v1.json` storage path and format.
+  Existing Custom save/load and host-state isolation tests passed.
+- The final editor screenshot was visually inspected: five full-width rows fit
+  above Prayer and Silence; the compact monitor, POLYPHONY and KJV text remain
+  readable. The attribution now uses an ASCII hyphen and has lower margin.
+- Existing VST3 identity, MIDI, DSP, polyphony, tempo sync, effect, state and
+  sixteen-voice regression tests passed. Standalone and VST3 metadata report
+  0.15.0 with the unchanged VST3 CID.
+
+Actual Ableton/MiniLab 3 use and subjective listening to the new factory
+sounds still require a test on the user's setup.
+
+---
+
+# Local archetype, MIDI and UI validation — 0.14.0
+
+Validated on 2026-10-28 with JUCE 9.0.4 and the installed MSVC toolchain.
+Windows x64 Release Standalone, VST3 and test targets built successfully.
+CTest: **647 checks passed**, zero failures in the final package build;
+test duration 34.27 seconds.
+
+- All four factory sounds set eleven controls and two independent waveforms
+  while retaining Master, Doubt, Faith and polyphony. Equal-note renders
+  measured a slower Hermit entrance and a brighter Inquisitor spectrum.
+- CUSTOM was saved to a versioned JSON test directory, reloaded through a new
+  store instance, restored all sound values, and rejected an incompatible file.
+  A host state for Hermit was restored independently while global CUSTOM held
+  Martyr. The file test used a project-local directory, not user AppData.
+- E1–E8 each responded to the first known CC increment after a preset and
+  reversed on the next decrement. A previously unknown CC first established a
+  safe baseline. A distant physical Master position remained blocked after a
+  mouse-edit pickup request.
+- Switching among archetypes during sixteen held voices produced finite audio
+  within the existing final peak bound without stopping the voices. The
+  existing VST3, effect, pad, state and GUI regression checks also passed.
+- The rendered editor snapshot was inspected for the exact KJV inscription,
+  compact monitor, five slots, button spacing, removed header ornament and
+  CMake-derived version number.
+
+Physical MiniLab 3 and Ableton interaction and subjective preset character
+still require a listening test on the user's setup. The installed global
+CUSTOM directory was not modified by the automated tests.
+
+---
+
+# Local DSP and UI validation — 0.13.0
+
+Validated on 2026-10-28 with JUCE 9.0.4 and the installed MSVC toolchain.
+Windows x64 Release Standalone, VST3 and test targets built successfully.
+CTest: **606 checks passed**, zero failures; final run 33.51 seconds.
+
+- Stereo Solitude impulse tests found quarter-note and dotted-quarter-note taps
+  at 60, 90, 120 and 150 BPM. Invalid BPM preserved the 120 BPM fallback.
+  A live 90-to-120 BPM change stayed finite and below the output peak limit.
+- Isolated recurring Harmony excitation measured **+7.42 dB** against the
+  previous strength. A comparison against the old VST3 showed the first
+  strike stayed within -60 dBFS while later output changed measurably.
+- New Dualism instances start at the equal 0.5/0.5 mix. The bipolar text
+  conversion, legacy 0.62 state round trip and randomization across both
+  polarities passed. Five effect readouts use one decimal percent.
+- The existing sixteen-voice, effects, MIDI, state and VST3 regression checks
+  passed. The editor snapshot was inspected for the renamed oscillator groups
+  and matching warm-gold Prayer/Silence text.
+
+The tests cannot establish real-world audibility, perceptual freedom from
+tempo-change artifacts or physical MiniLab 3/Ableton behavior. Those need a
+user listening test in Ableton. The legacy sample-exact comparisons bypass
+Delay because its tempo-dependent timing intentionally changed.
+
+---
+
 # Public release validation — 0.10.1
 
 The new clean-build and extracted-plugin results are recorded in the published

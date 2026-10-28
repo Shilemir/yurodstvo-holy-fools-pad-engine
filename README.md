@@ -1,129 +1,138 @@
-# YURODSTVO — Holy Fool's Pad Engine
+# YURODSTVO — Holy Fool's Synth for Arturia MiniLab3
 
-An experimental synthesizer for ambient music, drones and slowly evolving sound
-textures, inspired by Orthodox iconography and the tradition of holy foolishness.
-Open-source software under **GNU AGPL v3.0 only (AGPL-3.0-only)**.
-Current application version: **0.10.1** — experimental Windows x64 prerelease.
+**Version 1.0.0 — the first official stable release**, shown as **v1.0** in the
+editor. An independent musical instrument for ambient, drones and unstable,
+slowly evolving textures, inspired by holy foolishness, Orthodox iconography,
+church bells and sacred acoustic space. Free and open source: **AGPL-3.0-only**.
 
-![YURODSTVO interface](docs/images/interface.png)
+[Download v1.0.0](https://github.com/Shilemir/yurodstvo-holy-fools-pad-engine/releases/tag/v1.0.0)
+· [Latest stable release](https://github.com/Shilemir/yurodstvo-holy-fools-pad-engine/releases/latest)
 
-The screenshot is rendered from the real 0.10.0 development editor with demonstration values. The 0.10.1 release keeps the same interface and updates its version label.
+![YURODSTVO v1.0 interface](docs/images/interface.png)
 
-## Download
+## Download and installation
 
-Open this repository's **Releases** section and choose the [**v0.10.1 prerelease**](https://github.com/Shilemir/yurodstvo-holy-fools-pad-engine/releases/tag/v0.10.1).
-Download the Windows-VST3 or Windows-Standalone ZIP under **Assets**.
-GitHub's automatic Source code archives are not ready-to-run binaries.
-End users do not need JUCE, Visual Studio, CMake or compilation.
+End users do not need JUCE, Visual Studio, a compiler or separate font/image files.
+Choose the binary ZIP under Assets, not GitHub's automatic source archives.
 
-## Installation — VST3
+**VST3:** download `YURODSTVO-v1.0.0-Windows-x64-VST3.zip`, extract everything,
+close the DAW and copy the entire `YURODSTVO - Holy Fool's Synth for Arturia MiniLab3.vst3`
+bundle to `C:\Program Files\Common Files\VST3`. Preserve all Contents subfolders.
+Restart/rescan and load the instrument on a MIDI/instrument track. Keep only one
+version in scanned directories: the VST3 identity is unchanged. Back up projects
+before upgrading from 0.x, whose sound ranges and hardware fader order differ.
 
-1. Download `YURODSTVO-Holy-Fools-Pad-Engine-v0.10.1-Windows-VST3.zip`.
-2. Extract the complete archive and close your DAW.
-3. Copy the entire `YURODSTVO - Holy Fool's Pad Engine.vst3` folder into
-   `C:\Program Files\Common Files\VST3`. Keep all nested Contents folders intact.
-   Administrator permission may be required for this copy.
-4. Restart the DAW, enable VST3 system folders and rescan plugins.
-5. Load the instrument on a MIDI/instrument track and start at a moderate volume.
+**Standalone:** download `YURODSTVO-v1.0.0-Windows-x64-Standalone.zip`, extract
+and run `YURODSTVO - Holy Fool's Synth for Arturia MiniLab3.exe`. Select audio/MIDI
+in Options / Audio-MIDI Settings if needed. Keep the LICENSES folder with it.
+Start at a moderate Master/monitor level. No driver or runtime installer is bundled.
 
-For Ableton Live 11: Preferences > Plug-Ins > enable VST3 system folders > Rescan.
-Keep only one version of this plugin in scanned directories; its identity is
-stable across upgrades. Back up DAW projects before upgrading.
+Check the ZIPs against `SHA256SUMS.txt` from the same release, for example:
+`Get-FileHash .\YURODSTVO-v1.0.0-Windows-x64-VST3.zip -Algorithm SHA256`.
 
-## Installation — Standalone
+## Instrument
 
-1. Download `YURODSTVO-Holy-Fools-Pad-Engine-v0.10.1-Windows-Standalone.zip`.
-2. Extract everything and run `YURODSTVO - Holy Fool's Pad Engine.exe`.
-3. If needed, use Options / Audio-MIDI Settings to select your audio output and
-   MIDI input. No MIDI controller is required for the on-screen mouse keyboard.
-4. Start at a moderate Master level. Keep the LICENSES folder with the app.
+- Dual oscillators, each with Sine, Triangle, Sawtooth and Square; independent pads.
+- DEVOTION — octave Shimmer; DUALISM — oscillator balance.
+- PATIENCE — Attack; REMEMBRANCE — Release, both up to 20 seconds.
+- SANCTUARY — Cathedral Reverb; SOLITUDE — BPM-synchronized stereo Delay.
+- HARMONY — note-tracking bell resonances, recurring independently every 3–9 seconds.
+- MADNESS — smooth controlled pitch, amplitude, timbre and stereo instability.
+- Three-band EQ: HELL (120 Hz shelf), EARTH (1 kHz bell), HEAVEN (6 kHz shelf),
+  each −15 to +15 dB, followed by global MASTER volume and final peak protection.
+- Up to 16 voices, velocity, sustain, host automation and stored plugin state.
+- Interactive two-octave keyboard, octave navigation and real-envelope Release Glow.
+- Five Archetypes, PRAY FOR INSPIRATION and Arturia MiniLab 3 MIDI integration.
+- Embedded official illustration and unmodified Ruslan Display font.
 
-## Features
+SOLITUDE follows quarter-note / dotted-quarter-note taps at valid host tempo
+30–300 BPM. Without valid host tempo it keeps the last valid value, initially
+120 BPM; tempo changes crossfade without resetting the delay. FAITH (CC1) is
+visual only. DOUBT/Pitch Bend is a global ±100 cent gesture for both oscillators,
+preserving their relative detune. The legacy detune parameter remains compatible.
 
-- Two oscillators per voice, each with Sine, Triangle, Sawtooth and Square.
-- Independent waveform selection, oscillator mix and oscillator II detune.
-- Selectable 1–16 voice polyphony, default 8; velocity and physical MIDI sustain.
-- Attack and Release up to 30seconds, smooth parameter changes and voice stealing.
-- Three-band EQ before effects: Bass 120Hz shelf, Mid 1kHz bell, Treble 6kHz shelf,
-  each −12 to +12 dB, neutral at 0 dB.
-- Global octave Shimmer, long stereo Cathedral Reverb and Deep Ambient Delay, plus final peak protection.
-- Mouse-playable C2–C4 keyboard, waveform pads and MiniLab 3-inspired controls.
-- Per-voice note-tracking modal HARMONY and smooth organic MADNESS, at fixed full expression depth.
-- PRAY FOR INSPIRATION randomizes eight macros, EQ and both waveforms while preserving Master and expression.
-- Recurring note-tracking bell strikes and real-envelope keyboard Release Glow.
-- Host parameter automation and plugin-state storage.
-- Embedded official AI illustration and Ruslan Display font; no external assets
-  need to be installed next to the binaries.
+Harmony's final calibration already includes **+2 dB** on both initial and
+recurring bell returns. THE HIEROPHANT has **HELL = −1.0 dB**; no extra gain is
+added by the release packaging. The final safety knee can reduce apparent gain
+at extreme settings. Glow follows the main voice envelope; bells and global
+reverb/delay tails can remain audible after a key goes dark. SILENCE clears them.
 
-See [Sacred modules and listening guide](SACRED-MODULES.md) for the new DSP, technical tooltips and compatibility details. Existing host automation names remain technical for compatibility; the editor uses the new artistic names.
+## Five Archetypes
 
-See [Inspiration and recurring Harmony](INSPIRATION.md) for randomization, hardware pickup and Release Glow.
+| Archetype | Character |
+|---|---|
+| THE HERMIT | Contemplation |
+| THE MARTYR | Suffering |
+| THE INQUISITOR | Judgment |
+| THE HIEROPHANT | Transcendence |
+| THE FOOL (CUSTOM) | User-defined sound |
 
-## Basic controls
+The four factory sounds are fixed, artist-calibrated configurations. **SAVE**
+stores eight macros, three EQ bands and both waveforms in
+`%APPDATA%\YURODSTVO\custom-preset-v1.json`. **THE FOOL (CUSTOM)** recalls that
+user-defined sound only when clicked. Missing/invalid files leave the sound
+unchanged. Master, expression, polyphony and MIDI routing are not saved in this
+Custom slot. Host projects independently retain their own plugin state.
+
+**PRAY FOR INSPIRATION** creates unpredictable combinations of those 13 existing
+parameters rather than choosing a factory preset. Master, expression, polyphony
+and routing remain unchanged. Generated values notify the host and save normally.
+A manual sound edit can mark a selected archetype as MODIFIED.
+
+## Arturia MiniLab 3
+
+Both existing User and DAW CC maps are supported on any MIDI channel. The DAW
+must forward notes, CC and Pitch Bend; a control-surface script can intercept them.
+The instrument also works with other compatible MIDI input and its mouse keyboard;
+no Arturia software is required to run the instrument.
 
 | Control | Function | User CC | DAW CC |
 |---|---|---:|---:|
-| E1 | DEVOTION / Octave Shimmer |74|86|
-| E2 | DUALISM / Oscillator Mix |71|87|
-| E3 | PATIENCE / Attack |76|89|
-| E4 | REMEMBRANCE / Release |77|90|
-| E5 | SANCTUARY / Cathedral Reverb |93|110|
-| E6 | SOLITUDE / Deep Ambient Delay |18|111|
-| E7 | HARMONY / Sacred Resonance |19|116|
-| E8 | MADNESS / Controlled Instability |16|117|
-| F1 | MASTER / Volume |82|14|
-| F2 | HELL / Bass |83|15|
-| F3 | EARTH / Mid |85|30|
-| F4 | HEAVEN / Treble |17|31|
+| E1 | DEVOTION / Shimmer | 74 | 86 |
+| E2 | DUALISM / Balance | 71 | 87 |
+| E3 | PATIENCE / Attack | 76 | 89 |
+| E4 | REMEMBRANCE / Release | 77 | 90 |
+| E5 | SANCTUARY / Reverb | 93 | 110 |
+| E6 | SOLITUDE / Synced Delay | 18 | 111 |
+| E7 | HARMONY / Bells | 19 | 116 |
+| E8 | MADNESS / Instability | 16 | 117 |
+| F1 | HELL / Bass | 82 | 14 |
+| F2 | EARTH / Mid | 83 | 15 |
+| F3 | HEAVEN / Treble | 85 | 30 |
+| F4 | MASTER / Volume | 17 | 31 |
 
-Both absolute 0–127 MiniLab 3 maps are accepted on any MIDI channel. The DAW must
-forward notes, CC and Pitch Bend to the instrument; control-surface/Remote routing
-may intercept them. Preserve your working controller setup.
+E1–E8 interpret consecutive absolute CC values as movement relative to the current
+sound after prayer/preset/state/mouse edits. If no physical value is known, the
+first value establishes a baseline; a control at 0/127 cannot send more movement
+in that direction. EQ faders use pickup after preset changes; mouse-edited Master
+also uses pickup. The F1–F4 order above is the current order, changed since 0.10.1.
 
-P1–P4 select Sine/Triangle/Sawtooth/Square for oscillator I; P5–P8 do the same forII.
-Default pad routing accepts notes 36–43 or CC102–109 on any channel. Pad releases
-keep the selection. Old saved custom pad mappings remain supported internally.
+P1–P4 choose oscillator I waveforms; P5–P8 choose oscillator II. Default pads use
+notes 36–43 or CC102–109. The full pad-control octave 36–47 is reserved and silent;
+identical note/channel input from a physical key cannot be distinguished from a
+pad. Custom pad mappings remain supported. The keyboard opens at MIDI 48–72
+(C2–C4 in the instrument's display); arrows move the view without transposing notes
+and avoid the reserved octave. Mouse and physical MIDI ownership are independent.
+Mouse notes are not emitted as MIDI output to a DAW clip.
 
-Pitch Bend controls **both oscillators globally**, -100 to +100 cents, centre 0, preserving their relative detune. Its physical gesture is temporary; record MIDI
-Pitch Bend in the DAW to replay it. The separate Pitch Detune parameter supports
-host automation. Legacy Detune automation retains its former range for old sets.
-FAITH (CC1) displays the Mod Wheel position and has no audio effect. MADNESS always uses the full expression depth of 0.9.0 with Hesitation = 127. DOUBT is the global pitch wheel.
+## Requirements and validation limits
 
-Click and hold a key with the left mouse button, drag between keys, then release.
-Leaving the keyboard, losing focus or closing the editor releases the mouse note.
-Mouse and physical MIDI ownership are independent but share the polyphony limit.
-Long Release/effect tails may continue naturally. PANIC / SILENCE clears them.
-Mouse notes are not emitted as MIDI output to the DAW; use physical MIDI for clips.
-The Polyphony selector sets 1–16voices without assigning a hardware knob.
+Windows x64. VST3 needs a 64-bit VST3 instrument host; Standalone needs a working
+audio output. Built/tested on the development Windows 11 machine with an offline
+JUCE VST3 host. The owner reports earlier Ableton Live 11 use; no new Ableton,
+physical MiniLab, listening, other-PC, Windows 10/ARM or all-DAW test is claimed.
+Binaries are unsigned. Official packages use the static MSVC runtime and normal
+Windows system libraries. Stable release status is the owner's reference-version
+designation, not a claim of testing on every host/device.
 
-## Requirements and limits
+## Source and building
 
-Windows x64; VST3 requires a 64-bit VST3 instrument host. Standalone requires a
-working audio output. Built/tested locally on Windows 11; the owner reports earlier
-Ableton Live 11 operation. This does not validate all DAWs or other computers.
-Windows 10 and Windows on ARM are not independently validated.
-
-Official release packages use the statically linked MSVC runtime. Inspected
-imports require normal Windows system DLLs, without external VCRUNTIME/MSVCP
-runtime DLLs. No driver or runtime installer is bundled. Binaries are unsigned;
-contact the maintainer if blocked rather than disabling system protection.
-
-This is a prerelease under active development. Heavy EQ boosts and dense effect
-settings can engage the final safety knee. Shimmer's windowed pitch shifting can
-introduce a soft granular/chorused texture. 
-
-## Source and development
-
-The public repository begins with a reviewed 0.8.0 snapshot. The owner retains the
-complete, unmodified development history locally; former external reference images
-and that history are not published here. No additional DSP changes were made solely for 0.10.1 packaging; see CHANGELOG.md for the implemented changes since 0.8.0.
-
-Dependencies: CMake 3.22 or newer (new enough for your chosen generator), Git and
-Visual Studio C++ build tools with a Windows SDK. The tested toolchain is Visual
-Studio 2026/MSVC 19.51. CMake fetches official **JUCE 9.0.4**, verifies commit
-`3fb5cbc0340758596dac39f7c8de47d562b4896e`, and uses its AGPLv3 option.
-JUCE is not vendored in this Git repository. Internet access is needed on the
-first configure unless you use the complete source archive or supply JUCE_PATH.
+See [BUILDING.md](BUILDING.md). CMake 3.22+ (new enough for your generator), a C++17
+Windows toolchain/SDK and JUCE **9.0.4** are required. The tested toolchain is
+Visual Studio 2026/MSVC 19.51. CMake can fetch the exact official JUCE revision
+`3fb5cbc0340758596dac39f7c8de47d562b4896e`, accept `JUCE_PATH`, or discover
+`dependencies/JUCE` in the complete `YURODSTVO-v1.0.0-Corresponding-Source.zip`
+release asset for offline builds. JUCE is not vendored in the Git repository.
 
 ```powershell
 cmake -S . -B build -G "Visual Studio 18 2026" -A x64
@@ -131,18 +140,15 @@ cmake --build build --config Release --target Yurodstvo_Standalone Yurodstvo_VST
 ctest --test-dir build -C Release --output-on-failure
 ```
 
-`release/build-distribution.ps1` makes a fresh Release x64 build with static MSVC
-runtime, tests it and packages both formats. No tools are installed by the scripts.
-For an offline build, download the **Corresponding-Source.zip** asset from the
-same release: it contains this project and the exact JUCE source, discovered
-automatically at `dependencies/JUCE`. Alternatively configure with
-`-DJUCE_PATH="C:/path/to/JUCE-9.0.4"` using an unmodified official checkout.
-See [BUILDING.md](BUILDING.md) for tools, generators and packaging instructions,
-and TEST_REPORT.md for technical validation and its limits.
+`release/build-distribution.ps1` creates a clean Release build, runs checks and
+packages both formats. No tools are installed by these scripts. See
+[release/VALIDATION.md](release/VALIDATION.md) and the published release notes for
+measured results. Original private development history remains local; the public
+repository extends the reviewed public snapshot without rewriting its history.
 
 ## Licensing and artwork
 
-YURODSTVO — Holy Fool's Pad Engine is free and open-source software licensed
+YURODSTVO - Holy Fool's Synth for Arturia MiniLab3 is free and open-source software licensed
 under the **GNU Affero General Public License, version 3 only**. You may download
 and use the instrument free of charge, study its source, modify it, redistribute
 it and your own versions under the AGPLv3, and contribute improvements. Commercial

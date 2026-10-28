@@ -22,7 +22,7 @@ inline void runKeyboardTests()
     {juce::MidiBuffer m;m.addEvent(message,0);p.processBlock(audio,m);};
     auto editor=std::unique_ptr<juce::AudioProcessorEditor>(p.createEditor());PlayableKeyboard* keys=nullptr;
     for(auto* child:editor->getChildren())if(child->getName()=="On-screen keyboard")keys=dynamic_cast<PlayableKeyboard*>(child);
-    waveCheck(keys&&keys->getBounds()==juce::Rectangle<int>(210,613,945,80),"Interactive keyboard keeps the original C2-C4 layout");
+    waveCheck(keys&&keys->getBounds()==juce::Rectangle<int>(210,613,945,80)&&keys->firstNote()==48,"Interactive keyboard keeps its width and defaults to MIDI C2");
     auto event=[&](juce::Point<float> point,int flags,bool dragged=false)
     {
         const auto now=juce::Time::getCurrentTime();
@@ -30,9 +30,9 @@ inline void runKeyboardTests()
             1,0,0,0,0,keys,keys,now,point,now,1,dragged);
     };
     bool hits=true;
-    for(int note=48;note<=72;++note)hits=hits&&keys->noteAt(PlayableKeyboard::keyBounds(note).getCentre())==note;
+    for(int note=48;note<=72;++note)hits=hits&&keys->noteAt(PlayableKeyboard::keyBounds(note,48).getCentre())==note;
     waveCheck(hits&&keys->noteAt({-1,20})==-1&&keys->noteAt({950,20})==-1,"All white/black keys hit correctly with black keys above whites and no out-of-range notes");
-    const auto c=PlayableKeyboard::keyBounds(60).getCentre(),d=PlayableKeyboard::keyBounds(62).getCentre();
+    const auto c=PlayableKeyboard::keyBounds(60,48).getCentre(),d=PlayableKeyboard::keyBounds(62,48).getCentre();
     keys->mouseDown(event(c,juce::ModifierKeys::rightButtonModifier));process();
     waveCheck(p.voices.load()==0,"Right mouse button does not start a note");
     keys->mouseDown(event(c,juce::ModifierKeys::leftButtonModifier));process(20);
@@ -105,9 +105,9 @@ inline void runKeyboardTests()
     setPlain(p,"release",0.005f);p.setMouseNote(60);process();p.releaseResources();process(10);
     waveCheck(p.voices.load()==0,"Audio shutdown cancels the temporary mouse source");
     setPlain(p,"padInput",0);setPlain(p,"padFirstNote",48);setPlain(p,"padChannel",1);p.setMouseNote(48);process(10);
-    waveCheck(p.voices.load()==1,"Virtual keys bypass pad mapping even if a saved physical pad map overlaps C2");
+    waveCheck(p.voices.load()==0,"Virtual keys respect the reserved pad octave even with a saved custom pad map");
     send(juce::MidiMessage::noteOn(1,50,1.0f));process();
-    waveCheck(p.voices.load()==1&&p.currentWaveform(0)==2,"Physical pad mapping still selects waveforms while a mouse note is held");
+    waveCheck(p.voices.load()==0&&p.currentWaveform(0)==2,"Physical pad mapping still selects waveforms without starting a voice");
     p.setMouseNote(-1);process(10);
     yuro::DroneEngine mouse, midi;mouse.prepare(48000);midi.prepare(48000);
     mouse.setTargets({0,0.5f,0.005f,1,1});midi.setTargets({0,0.5f,0.005f,1,1});

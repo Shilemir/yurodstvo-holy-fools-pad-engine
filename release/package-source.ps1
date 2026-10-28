@@ -25,7 +25,7 @@ if ($LASTEXITCODE) { throw 'JUCE source export failed.' }
 [IO.Compression.ZipFile]::ExtractToDirectory($juceArchive,(Join-Path $stage 'dependencies\JUCE'))
 [IO.File]::WriteAllText((Join-Path $stage 'SOURCE-MANIFEST.txt'),"Application: $commit`nSource tag: v$version`nJUCE: $juceCommit (9.0.4)`nApplication version: $version`nLicence: AGPL-3.0-only; see COPYRIGHT.md and THIRD_PARTY.md for exceptions.`n")
 if (Get-ChildItem -LiteralPath $stage -Force -Recurse | Where-Object { $_.Name -eq '.git' -or $_.FullName -match '[\\/]assets[\\/]reference[\\/]' }) { throw 'Private content in source stage.' }
-$zip = Join-Path $output "YURODSTVO-Holy-Fools-Pad-Engine-v$version-Corresponding-Source.zip"
+$zip = Join-Path $output "YURODSTVO-v$version-Corresponding-Source.zip"
 if (Test-Path -LiteralPath $zip) { throw 'Source archive already exists; preserve previous packages.' }
 $stream = [IO.File]::Open($zip,[IO.FileMode]::CreateNew)
 $archive = [IO.Compression.ZipArchive]::new($stream,[IO.Compression.ZipArchiveMode]::Create,$false)
@@ -55,3 +55,6 @@ $hash = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash
 [IO.File]::WriteAllText(($zip+'.sha256'),"$hash  $([IO.Path]::GetFileName($zip))`r`n")
 Write-Output $zip
 Write-Output $hash
+
+$checksumLines = @(Get-ChildItem -LiteralPath $output -Filter "YURODSTVO-v$version-*.zip" | Sort-Object Name | ForEach-Object { (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash + '  ' + $_.Name })
+[IO.File]::WriteAllText((Join-Path $output 'SHA256SUMS.txt'),($checksumLines -join "`r`n")+"`r`n")

@@ -18,7 +18,7 @@ void ThreeBandEQ::prepare(double sampleRate, std::array<float, 3> initial)
     states = {}; clock = 0;
     for (size_t i = 0; i < 3; ++i)
     {
-        targets[i] = juce::jlimit(-12.0f, 12.0f, initial[i]);
+        targets[i] = juce::jlimit(-yuro::maxEqDb, yuro::maxEqDb, initial[i]);
         gains[i].reset(sr, 0.05); gains[i].setCurrentAndTargetValue(targets[i]);
     }
     coefficients = makeCoefficients(targets);
@@ -27,7 +27,7 @@ void ThreeBandEQ::setTargets(const std::array<float, 3>& db)
 {
     for (size_t i = 0; i < 3; ++i)
     {
-        const float value = juce::jlimit(-12.0f, 12.0f, db[i]);
+        const float value = juce::jlimit(-yuro::maxEqDb, yuro::maxEqDb, db[i]);
         targets[i] = value; gains[i].setTargetValue(value);
     }
 }

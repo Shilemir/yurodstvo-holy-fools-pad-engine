@@ -40,7 +40,10 @@ public:
     void visibilityChanged() override;
     void parentHierarchyChanged() override;
     int noteAt(juce::Point<float>) const;
-    static juce::Rectangle<float> keyBounds(int note);
+    static juce::Rectangle<float> keyBounds(int note,int first=48);
+    int firstNote() const {return processor.keyboardFirstNote.load();}
+    bool shiftOctave(int direction);
+    void validateRange();
     void pressAt(juce::Point<float>);
     void dragAt(juce::Point<float>);
     void releaseNote();
@@ -60,10 +63,13 @@ public:
     ~DroneEditor() override;
     void paint(juce::Graphics&) override;
     void resized() override;
+    bool presetIsModified() const { return presetModified; }
+    void refreshPresetSelection();
     static juce::String footerQuote()
     {
-        return juce::String::fromUTF8(u8"Никто не обольщай самого себя. Если кто из вас думает быть мудрым в веке сем, тот будь безумным, чтобы быть мудрым");
+        return "Let no man deceive himself. If any man among you seemeth to be wise in this world, let him become a fool, that he may be wise.";
     }
+    static juce::String footerAttribution() { return "1 CORINTHIANS 3:18 - KJV"; }
 private:
     DroneProcessor& processor;
     DroneLookAndFeel look;
@@ -76,8 +82,18 @@ private:
     juce::Slider polyphony;
     bool pitchDragging = false;
     std::array<std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>, 13> attachments;
-    juce::TextButton panic { "PANIC / SILENCE" };
+    juce::TextButton panic { "SILENCE" };
     juce::TextButton inspiration { "PRAY FOR INSPIRATION" };
+    std::array<juce::TextButton,4> factoryPresets {
+        juce::TextButton("THE HERMIT"), juce::TextButton("THE MARTYR"),
+        juce::TextButton("THE INQUISITOR"), juce::TextButton("THE HIEROPHANT") };
+    juce::TextButton customPreset { "THE FOOL (CUSTOM)" }, saveCustom { "SAVE" };
+    yuro::CustomPresetStore customStore;
+    yuro::SoundPreset selectedSound;
+    int selectedPreset=-1;
+    bool presetModified=false;
+    juce::String presetStatus;
+    juce::TextButton octaveDown { "<" },octaveUp { ">" };
     int inspirationFlash=0;
     juce::TooltipWindow tooltips { this, 650 };
     float meter = 0;

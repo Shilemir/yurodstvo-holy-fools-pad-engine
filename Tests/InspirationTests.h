@@ -42,7 +42,7 @@ inline void runInspirationTests(const juce::File& root)
     waveCheck(saved&&restored.parameters.getRawParameterValue("master")->load()==master,"Randomized parameters and waveforms round-trip through the saved host state");
     std::unique_ptr<juce::AudioProcessorEditor> editor(p.createEditor());juce::TextButton* pray=nullptr;
     for(auto* c:editor->getChildren())if(c->getName()=="Pray for Inspiration")pray=dynamic_cast<juce::TextButton*>(c);
-    waveCheck(pray&&pray->getWidth()>250&&pray->getY()<90,"The single prayer button fits in the existing header");
+    waveCheck(pray&&pray->getBounds()==juce::Rectangle<int>(38,476,186,28),"The prayer button sits above SILENCE in the left panel");
     pray->onClick();waveCheck(pray->getToggleState(),"A prayer click gives a short warm visual response");
     bool gui=true;
     for(int index=0;index<8;++index)
@@ -63,7 +63,7 @@ inline void runInspirationTests(const juce::File& root)
         if(c->getName().startsWith("Fader "))
         {
             const int index=c->getName().substring(6).getIntValue()-1;
-            const char* id=index==0?"master":index==1?"eqBass":index==2?"eqMid":"eqTreble";
+            const char* id=index==0?"eqBass":index==1?"eqMid":index==2?"eqTreble":"master";
             if(auto* f=dynamic_cast<juce::Slider*>(c))faders=faders && std::abs(f->getValue()-p.parameters.getRawParameterValue(id)->load())<.002;
         }
     }
@@ -72,10 +72,11 @@ inline void runInspirationTests(const juce::File& root)
     DroneProcessor pickup;pickup.prepareToPlay(48000,256);pickup.randomizeSound();juce::AudioBuffer<float> audio(2,256);
     auto send=[&](int cc,int value){juce::MidiBuffer m;m.addEvent(juce::MidiMessage::controllerEvent(1,cc,value),0);pickup.processBlock(audio,m);pickup.flushMidiParameters();};
     const float mix=pickup.parameters.getRawParameterValue("mix")->load();const int far=mix>.5f?0:127;
-    send(71,far);waveCheck(pickup.parameters.getRawParameterValue("mix")->load()==mix,"After randomization a distant physical control cannot jump its parameter");
-    send(71,juce::roundToInt(mix*127));send(71,far);
-    waveCheck(pickup.parameters.getRawParameterValue("mix")->load()==far/127.0f,"Crossing the randomized value picks up and restores normal absolute control");
-    send(82,42);waveCheck(std::abs(pickup.parameters.getRawParameterValue("master")->load()-42.0f/127)<.001f,"Master never enters randomization pickup mode");
+    send(71,far);waveCheck(pickup.parameters.getRawParameterValue("mix")->load()==mix,"First unseen encoder CC establishes a baseline without a jump");
+    send(71,juce::jlimit(0,127,far+(far==0?2:-2)));
+    waveCheck(std::abs(pickup.parameters.getRawParameterValue("mix")->load()-(mix+(far==0?2:-2)/127.0f))<.001f,
+        "Next encoder step changes the randomized value immediately without pickup travel");
+    send(17,42);waveCheck(std::abs(pickup.parameters.getRawParameterValue("master")->load()-yuro::maxMasterGain*42.0f/127)<.001f,"F4 Master never enters randomization pickup mode");
 
     for(double sr:{44100.0,48000.0,96000.0})
     {

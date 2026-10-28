@@ -6,7 +6,7 @@ $BuildDirectory = [IO.Path]::GetFullPath($BuildDirectory)
 $cmakeText = [IO.File]::ReadAllText((Join-Path $projectRoot 'CMakeLists.txt'))
 $version = [regex]::Match($cmakeText,'project\([^\r\n]*VERSION\s+([0-9]+\.[0-9]+\.[0-9]+)').Groups[1].Value
 if (-not $version) { throw 'Cannot determine the application version.' }
-$name = "YURODSTVO - Holy Fool's Pad Engine"
+$name = "YURODSTVO - Holy Fool's Synth for Arturia MiniLab3"
 $bundleName = "$name.vst3"
 $bundle = Join-Path $BuildDirectory "Yurodstvo_artefacts\Release\VST3\$bundleName"
 $binaryRelative = "Contents\x86_64-win\$bundleName"
@@ -109,7 +109,7 @@ New-Item -ItemType Directory -Force -Path $bundleNotices | Out-Null
 Copy-Item -LiteralPath (Get-ChildItem -LiteralPath $licences -File | ForEach-Object FullName) -Destination $bundleNotices
 if (Get-ChildItem -LiteralPath $stage -Recurse -File | Where-Object { $_.Extension -in '.pdb','.lib','.exp','.ilk','.obj','.cpp','.h','.ps1','.vcxproj' }) { throw 'Unexpected source/build/debug files in package.' }
 function New-VerifiedArchive([string]$Source,[string]$Kind) {
-    $zipName = "YURODSTVO-Holy-Fools-Pad-Engine-v$version-Windows-$Kind.zip"
+    $zipName = "YURODSTVO-v$version-Windows-x64-$Kind.zip"
     $zipPath = Join-Path $destination $zipName
     $temporaryZip = Join-Path $destination "candidate-$runId-$Kind.zip"
     Add-Type -AssemblyName System.IO.Compression,System.IO.Compression.FileSystem
@@ -164,3 +164,6 @@ if ($LASTEXITCODE) { throw 'Extracted VST3 failed technical checks.' }
 [IO.File]::WriteAllText((Join-Path $destination 'Dependencies-Standalone.txt'),$appDependencies)
 @($vst,$app) | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $destination 'packages.json') -Encoding UTF8
 $vst,$app | Format-List
+
+$checksumLines = @(Get-ChildItem -LiteralPath $destination -Filter "YURODSTVO-v$version-*.zip" | Sort-Object Name | ForEach-Object { (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash + '  ' + $_.Name })
+[IO.File]::WriteAllText((Join-Path $destination 'SHA256SUMS.txt'),($checksumLines -join "`r`n")+"`r`n")

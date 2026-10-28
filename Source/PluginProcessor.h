@@ -3,10 +3,12 @@
 #pragma once
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "DroneEngine.h"
+#include "ParameterLimits.h"
 #include "AmbientEffects.h"
 #include "PadRouter.h"
 #include "ThreeBandEQ.h"
 #include "MouseNoteInput.h"
+#include "SoundPresets.h"
 
 class DroneProcessor final : public juce::AudioProcessor, private juce::Timer, private juce::AudioProcessorValueTreeState::Listener
 {
@@ -19,7 +21,7 @@ public:
     void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override { return true; }
-    const juce::String getName() const override { return "YURODSTVO - Holy Fool's Pad Engine"; }
+    const juce::String getName() const override { return yuro::productName; }
     bool acceptsMidi() const override { return true; }
     bool producesMidi() const override { return false; }
     double getTailLengthSeconds() const override { return 90.0; }
@@ -55,16 +57,27 @@ public:
     std::array<std::atomic<bool>, 128> notes {};
     std::array<std::atomic<float>,128> noteLevels {};
     void randomizeSound(); // message thread only; changes existing host parameters
+    yuro::SoundPreset captureSound() const;
+    void applySoundPreset(const yuro::SoundPreset&); // message thread, host-notified
+    void armFaderPickup(int index) { if(index>=0 && index<4)pickupArmed[static_cast<size_t>(index+6)].store(true); }
+    void armEncoderRelative(int index) { if(index>=0 && index<8)encoderRelative[static_cast<size_t>(index<6?index:index+4)].store(true); }
+    uint16_t reservedOctaveMask() const;
+    bool isReservedNote(int note) const {return note>=0&&note<=127&&(reservedOctaveMask()&(1u<<(note/12)));}
+    bool playableView(int first) const;
+    int safeKeyboardStart(int preferred) const;
+    std::atomic<int> keyboardFirstNote {48};
     std::atomic<bool> panicRequested { false };
     int polyphonyLimit() const { return juce::roundToInt(polyphonyRaw->load()); }
-    void setMouseNote(int note) { mouseInput.post(note >= 48 && note <= 72 ? note : -1); }
+    void setMouseNote(int note) { mouseInput.post(note >= 0 && note <= 127 && !isReservedNote(note) ? note : -1); }
     std::atomic<unsigned> mouseEpoch {0};
 private:
     juce::Random inspirationRandom;
     std::array<std::atomic<bool>,12> pickupArmed {};
+    std::array<std::atomic<bool>,12> encoderRelative {};
     std::array<int,12> previousControl {};
     juce::RangedAudioParameter* controlParameter(int control) const;
     bool waitForPickup(int control,int value);
+    float currentControlNormalized(int control) const;
     static juce::AudioProcessorValueTreeState::ParameterLayout makeParameters();
     std::array<juce::RangedAudioParameter*, yuro::parameterCount> parameterObjects {};
     std::array<std::atomic<float>*, yuro::parameterCount> raw {};

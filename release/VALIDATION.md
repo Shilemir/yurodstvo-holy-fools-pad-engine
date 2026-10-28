@@ -1,28 +1,22 @@
-# Release validation — 0.10.1
+# Stable 1.0.0 publication validation
 
-Both Windows x64 Release formats are built from the same committed public tree
-with official JUCE 9.0.4, Visual Studio 2026/MSVC and the static MSVC runtime.
-The release tag identifies that exact build commit. The private development
-history and historical reference artwork are excluded from public source.
+Both Windows x64 Release formats are built from one committed reviewed public
+tree, identified by v1.0.0. JUCE 9.0.4/MSVC and static runtime are retained.
+The C++ Source and Tests trees are identical to the approved local 1.0.0 tag;
+only publication documentation, source export and packaging are prepared here.
 
-Publication checks:
+The release process checks clean compilation, CTest and the extracted VST3;
+five archetypes/Custom persistence; approved Hierophant and Harmony calibration;
+quote/attribution, version label, keyboard, tempo sync, MIDI/state and existing
+VST3 identities. x64 metadata, exact embedded PNG/font, complete bundle paths,
+licences, source manifest, SHA-256 and public downloads are verified.
+Measured counts/results are appended to the published release notes. TEST_REPORT.md
+also preserves historical local runs, which are not new publication measurements.
 
-- Clean Standalone, VST3 and test-target compilation, CTest and extracted-VST3 tests.
-- Inspiration's 13 randomized parameters, preserved controls, state and pickup.
-- Recurring Harmony, note-off/sustain retirement and real-envelope Release Glow.
-- Madness depth, Faith's zero audio effect, waveform paths, MIDI and state tests.
-- x64 PE metadata and unchanged VST3 component/controller identity.
-- Complete embedded official PNG/font and required third-party/legal notices.
-- Complete VST3 bundle, no debug/build files, ZIP roundtrip and SHA-256 sidecars.
-- Complete Corresponding Source archive from the same commit with pinned JUCE.
-- Uploaded tag/commit, anonymous asset downloads and SHA-256 verification.
+Optional local reference binaries can be used in a separate regression run but
+are not required or distributed. Custom tests use project-local fixtures and do
+not change the user's THE FOOL file. No new Ableton, physical MiniLab, listening,
+other-PC, Windows 10/ARM or all-DAW testing is claimed. Binaries are unsigned.
 
-The published release notes record measured results from the new build. Earlier
-local development results remain in TEST_REPORT.md, explicitly as historical
-runs. Optional private comparison binaries are never needed by public builders;
-when available they may be used in an additional local regression run and are
-never included in the source or binary downloads.
-
-No new Ableton, physical MiniLab, audio listening, other-PC, Windows 10/ARM or
-broad DAW test is claimed. Offline automated host/state tests are not a substitute
-for listening or checking recall in a user's own DAW. Binaries are unsigned.
+Old Releases may be removed only after stable/latest and download verification.
+Their Git tags/commits and local project/history must remain unchanged.

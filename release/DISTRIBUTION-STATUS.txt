@@ -1,23 +1,20 @@
-YURODSTVO 0.10.1 — Experimental Windows x64 release, 2026-10-28
+YURODSTVO 1.0.0 — Official stable reference release, 2026-10-28
 
-Original application: GNU AGPL v3.0 only (AGPL-3.0-only). JUCE 9.0.4 uses its
-AGPLv3 option. Use, study, modification, redistribution and commercial use are
-permitted under the applicable licences. See LICENSE.txt, COPYRIGHT.md and
-THIRD_PARTY.md. Provide complete Corresponding Source when distributing binaries;
-SOURCE-CODE.txt points to the exact source release, including official JUCE.
+Product: YURODSTVO - Holy Fool's Synth for Arturia MiniLab3.
+Technical version 1.0.0; editor v1.0; source tag v1.0.0.
+The approved existing implementation is published without DSP or functional edits.
+THE HIEROPHANT HELL = -1.0 dB. Initial and recurring Harmony bells already include
++2 dB. Stable status is the owner's reference-version designation, not a claim
+of testing every host/device. See published measured validation and limits.
 
-The unmodified Ruslan Display font stays OFL-1.1. Only the official AI PNG has
-the owner's CC0-1.0 dedication, limited to rights the owner can waive or license.
-No exclusive copyright or universal third-party-rights clearance is asserted.
-See ILLUSTRATION-NOTICE.txt and CC0-1.0.txt. All dependency notices are retained.
+Original application AGPL-3.0-only; JUCE 9.0.4 uses its AGPL option.
+Complete Corresponding Source accompanies the binaries; see SOURCE-CODE.txt.
+Third-party copyrights and notices remain intact, including MIT VST3 and OFL font.
+Only the owner's applicable rights in the official AI PNG are dedicated under
+CC0-1.0, with its documented limitations. The KJV inscription has its own attribution
+and regional-rights notice. See LICENSE.txt, THIRD_PARTY.md and artwork notices.
 
-This release publishes the implemented Inspiration, recurring Harmony, Release
-Glow, Madness/Faith and DSP/UI changes since 0.8.0-agpl. No additional synthesis
-or MIDI changes were introduced solely for packaging, except the version label.
-VST3 identity and existing parameter IDs remain unchanged. Private development
-history and historical external reference images are excluded.
-
-Unsigned prerelease, tested on the development Windows x64 machine with offline
-checks and a JUCE VST3 host. No new Ableton, physical MiniLab, listening or other-PC
-test is claimed. Windows 10/ARM and all other DAWs are not independently validated.
-End users do not need JUCE, a compiler, separate PNG/font files or a runtime installer.
+No private Git history, old reference artwork, compiler, JUCE installation,
+Debug build, cache, Microsoft DLL bundle or audio driver is included in binary
+ZIPs. Assets/font are embedded. Unsigned Windows x64 binaries; no new physical
+MiniLab, Ableton, listening, other-PC or broad DAW validation is claimed.

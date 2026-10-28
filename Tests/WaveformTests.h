@@ -151,7 +151,7 @@ inline void runWaveformTests()
         waveCheck(processor.currentWaveform(pad / 4) == pad % 4, "Pad release preserves the selected waveform");
     }
     send(juce::MidiMessage::noteOn(1, 36, 1.0f));
-    waveCheck(processor.voices.load() == 1, "Keyboard can play the same pitch on a different channel");
+    waveCheck(processor.voices.load() == 0, "The complete pad-control octave is silent on every MIDI channel");
     send(juce::MidiMessage::noteOn(10, 36, 0.0f));
     waveCheck(processor.currentWaveform(0) == 3, "Zero-velocity Note On is a release, not a new selection");
     send(juce::MidiMessage::noteOff(1, 36));
@@ -187,7 +187,8 @@ inline void runWaveformTests()
     restored.setStateInformation(oldBinary.getData(), static_cast<int>(oldBinary.getSize()));
     bool originalValues = true;
     for (size_t i = 0; i < oldValues.size(); ++i)
-        originalValues = originalValues && std::abs(restored.parameters.getRawParameterValue(yuro::parameterIds[i])->load() - oldValues[i]) < 0.002f;
+        originalValues = originalValues && std::abs(restored.parameters.getRawParameterValue(yuro::parameterIds[i])->load()
+            - (i == 3 ? yuro::maxEnvelopeSeconds : oldValues[i])) < 0.002f;
     waveCheck(originalValues && restored.currentWaveform(0) == 0 && restored.currentWaveform(1) == 0,
-        "Legacy five-parameter 0.1/0.2 state migrates to Sine + Sine without changing old values");
+        "Legacy five-parameter state migrates to Sine + Sine, preserving values except the new Release cap");
 }

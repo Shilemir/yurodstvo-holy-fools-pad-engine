@@ -5,7 +5,7 @@
 
 inline void runControlRoutingTests()
 {
-    constexpr std::array<const char*, 10> ids { "shimmer", "mix", "attack", "release", "reverb", "delay", "master", "eqBass", "eqMid", "eqTreble" };
+    constexpr std::array<const char*, 10> ids { "shimmer", "mix", "attack", "release", "reverb", "delay", "eqBass", "eqMid", "eqTreble", "master" };
     PadRouter router;
     bool protectedRanges = true;
     for (const auto& family : { yuro::controlCC, yuro::dawControlCC }) for (int cc : family)
@@ -29,7 +29,7 @@ inline void runControlRoutingTests()
                 const int value = (17 + static_cast<int>(i) * 13 + channel * 7 + mode * 11) % 128;
                 juce::MidiBuffer midi; midi.addEvent(juce::MidiMessage::controllerEvent(channel, family[i], value), 31);
                 processor.processBlock(audio, midi); processor.flushMidiParameters();
-                const float expected = i >= 7 ? ThreeBandEQ::ccToDb(value)
+                const float expected = i >= 6 && i <= 8 ? ThreeBandEQ::ccToDb(value)
                     : processor.parameters.getParameter(ids[i])->convertFrom0to1(static_cast<float>(value) / 127);
                 allModes = allModes && std::abs(processor.parameters.getRawParameterValue(ids[i])->load() - expected) < 0.011f
                     && processor.lastControl.load() == static_cast<int>(i) && processor.lastControlChannel.load() == channel;

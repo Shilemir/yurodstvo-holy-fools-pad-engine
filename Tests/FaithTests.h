@@ -95,10 +95,13 @@ inline void runFaithTests(const juce::File& root,const juce::String& currentPath
             {
                 const auto name=parameter->getName(80);
                 if(name=="Madness")parameter->setValueNotifyingHost(amount);
-                if(name=="Polyphony" || name=="Master Volume")parameter->setValueNotifyingHost(1);
+                if(name=="Polyphony")parameter->setValueNotifyingHost(1);
+                if(name=="Master Volume")parameter->setValueNotifyingHost(p==now.get()?1.0f/yuro::maxMasterGain:1.0f);
                 if(name=="Attack")parameter->setValueNotifyingHost(0);
                 if(name=="Harmony")parameter->setValueNotifyingHost(0);
-                if(name=="Shimmer" || name=="Reverb" || name=="Delay")parameter->setValueNotifyingHost(.5f);
+                // Solitude became tempo-synced in 0.13.0; isolate the unchanged
+                // Madness/Faith comparison from that deliberate timing change.
+                if(name=="Shimmer" || name=="Reverb")parameter->setValueNotifyingHost(.5f);
             }
             p->prepareToPlay(48000,256);
             for(int block=0;block<64;++block)
@@ -120,7 +123,7 @@ inline void runFaithTests(const juce::File& root,const juce::String& currentPath
             for(int ch=0;ch<2;++ch)for(int i=0;i<256;++i)error=std::max(error,std::abs(x.getSample(ch,i)-y.getSample(ch,i)));
         }
         std::cout<<"Madness "<<amount<<": 0.9.0 CC1=127 vs new changing FAITH max sample error="<<error<<std::endl;
-        waveCheck(error<1e-6,"New E8 equals actual 0.9.0 at full Hesitation, with sixteen voices, all FX, global pitch and Release");
+        waveCheck(error<1e-6,"New E8 equals actual 0.9.0 at full Hesitation, with sixteen voices, remaining FX, global pitch and Release");
         old->releaseResources();now->releaseResources();
     }
 }

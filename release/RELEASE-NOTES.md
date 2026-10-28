@@ -1,83 +1,63 @@
-# YURODSTVO — Holy Fool's Pad Engine v0.10.1
+# YURODSTVO v1.0.0 — Holy Fool's Synth for Arturia MiniLab3
 
-Experimental Windows x64 **Pre-release**, succeeding **v0.8.0-agpl**. This release
-publishes the implemented 0.8.1–0.10.0 development work with updated release
-metadata and packaging. Earlier releases remain available. GNU AGPL v3.0 only.
+The first official stable release of YURODSTVO: an independent instrument inspired
+by the tradition of holy foolishness, Orthodox iconography, church bells and
+sacred space. Designed for experimental ambient, drones and unstable evolving
+textures, with direct Arturia MiniLab 3 integration.
 
-## Changes since the previous public release
+## The instrument
 
-- **PRAY FOR INSPIRATION:** the header button randomizes 13 existing parameters:
-  eight macros, three EQ bands and two independent waveform choices. It preserves
-  Master, Doubt, Faith, polyphony, legacy detune and MIDI routing. Values notify
-  the host and save normally. After a prayer, move each affected absolute MiniLab
-  knob/EQ fader through its displayed value to pick it up without a sudden jump.
-- **Recurring HARMONY:** six-mode, note-tracking resonances per voice now include
-  shaped bell strikes at independent 3–9 second intervals. Bells remain audible
-  with long oscillator Attack. Note Off/pedal release stops new strikes; bounded
-  resonance tails can continue. Voice stealing and Panic retire them safely.
-- **Release Glow:** keyboard illumination follows the actual main voice envelope
-  through Attack, Release, sustain, retriggering and voice retirement. It is not
-  a separate visual decay. Bell/effect tails can outlast the keyboard glow.
-- **MADNESS and FAITH:** E8 uses the full expression depth of the previous local
-  0.9.0 at Hesitation = 127. FAITH (Mod Wheel/CC1), moved by MIDI or mouse, remains
-  visible with no audio effect. Zero Madness is bypass.
-- **Pitch and effects:** DOUBT/Pitch Bend now affects both oscillators globally
-  by ±100 cents while preserving their relative detune. Cathedral Reverb has
-  diffusion and eight delay lines; Deep Ambient Delay has stronger stereo returns
-  and up to 88% feedback. Shimmer, reverb and delay returns operate in parallel.
-- **Interface:** repaired, scale-aware waveform icons; warm brown/olive/gold
-  control states; artistic labels with technical tooltips. The official embedded
-  illustration, Ruslan Display font and 1200 × 780 layout are retained.
-- **Controllers and state:** E7 HARMONY uses User/DAW CC19/116; E8 MADNESS uses
-  CC16/117. The rest of the MiniLab 3 maps are preserved. Existing VST3 identity,
-  parameter IDs and technical host names remain; new macros are appended and
-  old states default them to zero. See README.md, INSPIRATION.md and SACRED-MODULES.md.
+- Dual oscillator synthesizer; four independently selectable waveforms per oscillator.
+- **Devotion** — Shimmer; **Dualism** — Oscillator Balance.
+- **Patience** — Attack; **Remembrance** — Release.
+- **Sanctuary** — Cathedral Reverb; **Solitude** — BPM-synchronized Delay.
+- **Harmony** — Recurring Bell Resonances; **Madness** — Controlled Instability.
+- Three-band EQ: **Hell, Earth, Heaven**, plus global **Master Volume**.
+- Polyphony up to 16 voices, interactive keyboard with octave navigation,
+  Release Glow, host automation and saved plugin state.
+- **Pray for Inspiration** — unpredictable parameter combinations, preserving
+  Master/expression/polyphony, rather than a fixed preset selection.
+- Five Archetypes: **THE HERMIT — Contemplation**, **THE MARTYR — Suffering**,
+  **THE INQUISITOR — Judgment**, **THE HIEROPHANT — Transcendence** and
+  **THE FOOL (CUSTOM) — User-defined sound**. SAVE stores a personal configuration
+  for the Custom slot; host projects keep their own state independently.
 
-## Downloads and installation
+This publishes the existing approved 1.0 sound and UI. THE HIEROPHANT has HELL
+at **−1.0 dB**. Harmony's initial and recurring bell returns already include the
+approved **+2 dB** calibration. No additional DSP change is made for publication.
+Technical version: **1.0.0**; editor label: **v1.0**. Existing VST3 identity and
+parameter IDs remain intact. Hardware faders now follow F1 Hell / F2 Earth /
+F3 Heaven / F4 Master; see README before upgrading projects from early 0.x builds.
 
-Under Assets choose:
+## Download
 
-- **YURODSTVO-Holy-Fools-Pad-Engine-v0.10.1-Windows-VST3.zip**
-- **YURODSTVO-Holy-Fools-Pad-Engine-v0.10.1-Windows-Standalone.zip**
+- **YURODSTVO-v1.0.0-Windows-x64-VST3.zip**
+- **YURODSTVO-v1.0.0-Windows-x64-Standalone.zip**
+- **SHA256SUMS.txt** — checksums for the binary and complete source archives.
 
-Extract everything. For VST3, close the DAW and copy the **entire**
-`YURODSTVO - Holy Fool's Pad Engine.vst3` bundle to
-`C:\Program Files\Common Files\VST3`, keeping all Contents subfolders; restart
-and rescan. Keep only one version in scanned folders. For Standalone, run the
-extracted EXE and select output/MIDI devices in Options / Audio-MIDI Settings.
-Keep the LICENSES folder. No compiler, JUCE install, separate image/font install
-or runtime installer is required. Start at a moderate Master level.
+Extract everything. For VST3, close the DAW and copy the entire
+`YURODSTVO - Holy Fool's Synth for Arturia MiniLab3.vst3` bundle to
+`C:\Program Files\Common Files\VST3`, retaining all Contents folders; rescan.
+Keep only one version in scanned folders. For Standalone run the extracted EXE
+and select audio/MIDI devices in Options / Audio-MIDI Settings. Keep LICENSES.
+No JUCE, compiler or separate font/image installation is needed. Back up old
+projects and begin at a moderate monitoring level.
 
-Back up your projects before upgrading: pitch-wheel semantics and effects have
-intentionally changed since 0.8.0. Stable IDs preserve parameter addressing;
-they do not promise that earlier projects sound identical after these DSP changes.
+## Open source
 
-## Source and licences
+**GNU AGPL v3.0 only (AGPL-3.0-only)**, using JUCE 9.0.4's AGPL option.
+The **YURODSTVO-v1.0.0-Corresponding-Source.zip** asset provides the exact project
+revision and unmodified official JUCE source for offline builds. Preserve notices
+and provide Corresponding Source when redistributing binaries. Third-party terms,
+OFL font and the owner's limited CC0 dedication for the AI illustration remain
+unchanged. See LICENSE.txt, THIRD_PARTY.md and BUILDING.md.
 
-The application remains **AGPL-3.0-only**, using JUCE 9.0.4's AGPLv3 option.
-Commercial use is permitted under the applicable licences. Preserve notices and
-provide complete Corresponding Source when conveying binaries; modified covered
-works also have the applicable AGPL sections 5 and 13 obligations.
+## Validation and limits
 
-The **YURODSTVO-Holy-Fools-Pad-Engine-v0.10.1-Corresponding-Source.zip** asset
-contains the exact project revision, scripts, assets and official JUCE 9.0.4
-source (commit `3fb5cbc0340758596dac39f7c8de47d562b4896e`) for offline builds.
-All three archives have SHA-256 sidecars. Automatic GitHub source archives contain
-the project only; CMake can fetch pinned JUCE or use JUCE_PATH. See BUILDING.md.
-
-Third-party licences/notices remain intact, including MIT VST3 SDK and OFL font.
-Only the owner's applicable rights in the official AI PNG are dedicated under
-CC0-1.0, with its documented AI/provenance limitations. See LICENSE.txt,
-COPYRIGHT.md, THIRD_PARTY.md and assets/ILLUSTRATION-NOTICE.txt.
-
-## Validation and known limits
-
-The publication process builds both formats from one committed source revision,
-runs CTest and the extracted VST3 checks, validates x64/version/imports and exact
-embedded PNG/font bytes, and verifies ZIP contents and public download hashes.
-Measured results are appended to the published release notes after validation.
-
-Unsigned experimental binaries, tested on the development Windows x64 machine
-with an offline JUCE VST3 host. No new Ableton, physical MiniLab, listening,
-other-PC, Windows 10/ARM or all-DAW validation is claimed. Listen and check project
-recall in your own host. High macro/EQ settings can engage output protection.
+Both Windows x64 Release formats are built from one tagged source commit.
+Automated build, extracted-plugin, archetype, state/MIDI, embedded-asset and ZIP
+checks are performed before publication; measured results are appended below.
+Binaries are unsigned. No new Ableton, physical MiniLab, listening, other-PC,
+Windows 10/ARM or all-DAW validation is claimed. Without valid host BPM, Solitude
+uses the last valid tempo, initially 120 BPM. Independent bell/effect tails can
+outlast the main voice's keyboard glow. Extreme settings can reach output protection.

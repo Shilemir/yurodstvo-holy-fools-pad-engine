@@ -21,6 +21,7 @@ public:
     void prepare(double sampleRate, bool externalOutputStage = false);
     void setTargets(const std::array<float, parameterCount>& values);
     void setPolyphony(int limit);
+    void setReservedOctaves(uint16_t mask);
     void setPitchCents(float cents) { pitch.setTargetValue(juce::jlimit(-100.0f, 100.0f, cents)); }
     void setWaveforms(const std::array<int, 2>& shapes);
     void noteOn(int channel, int note, float velocity, int source = 0);
@@ -58,6 +59,7 @@ private:
     std::array<Voice, maxVoiceCount> voices {};
     std::array<Voice, maxVoiceCount * 2> tails {};
     int polyphony = voiceCount;
+    uint16_t reservedOctaves=1u<<3;
     std::array<bool, 16> pedals {};
     std::array<juce::SmoothedValue<float>, parameterCount> controls;
     juce::SmoothedValue<float> pitch;

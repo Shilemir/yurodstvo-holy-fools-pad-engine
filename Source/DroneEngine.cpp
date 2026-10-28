@@ -102,12 +102,21 @@ std::array<float,2> DroneEngine::Voice::sample(double sampleRate, float bend, fl
         resonanceActive=true;
         if(!releasing && --bellCountdown<=0)
         {
-            bells.strike(.65f+.175f*(bellRandom.random()+1),bellRandom.random(),sampleRate);
+            // Repeated strikes must rise above the already sounding drone.
+            // Keep the first excitation and the sustained modal layer unchanged.
+            constexpr float recurringStrikeBoost = 2.35f; // +7.4 dB
+            const float strength=(.65f+.175f*(bellRandom.random()+1))
+                *(bellEvents==0 ? 1.0f : recurringStrikeBoost);
+            bells.strike(strength,bellRandom.random(),sampleRate);
             bellCountdown=static_cast<int>(sampleRate*(3+3*(bellRandom.random()+1)));++bellEvents;
         }
-        bellSignal=3.5f*harmony*bells.process(0,frequency*bend*drift1,sampleRate,harmony)*bellGate;
+        // One +2 dB gain for the complete Harmony return. It follows both
+        // resonator outputs, so strike strength, timing and decay stay intact.
+        constexpr float harmonyBellGain=1.25892541179f;
+        const float harmonyReturnGain=3.5f*harmony*harmonyBellGain;
+        bellSignal=harmonyReturnGain*bells.process(0,frequency*bend*drift1,sampleRate,harmony)*bellGate;
         const float excitation=voiceSignal + .35f*tables.sample(2,phase1,dt1);
-        voiceSignal += 3.5f*harmony*resonance.process(excitation,frequency*bend*drift1,sampleRate,harmony);
+        voiceSignal += harmonyReturnGain*resonance.process(excitation,frequency*bend*drift1,sampleRate,harmony);
     }
     else if(resonanceActive) { resonance.reset(); bells.reset(false);bellCountdown=0;bellGate=0;resonanceActive=false; }
     const float out = (voiceSignal * envelope + bellSignal) * velocity * (1 + .15f*madness*modulation[2]);
@@ -120,6 +129,7 @@ std::array<float,2> DroneEngine::Voice::sample(double sampleRate, float bend, fl
 }
 void DroneEngine::noteOn(int channel, int note, float velocity, int source)
 {
+    if(note<0 || note>127 || (reservedOctaves & (1u<<(note/12))))return;
     if (velocity <= 0) { noteOff(channel, note, source); return; }
     Voice* chosen = nullptr;
     for (int i = 0; i < polyphony; ++i) if (voices[static_cast<size_t>(i)].note < 0) { chosen = &voices[static_cast<size_t>(i)]; break; }
@@ -153,6 +163,12 @@ void DroneEngine::noteOn(int channel, int note, float velocity, int source)
     chosen->bells.reset(false);chosen->bellRandom.seed=static_cast<uint32_t>(clock*277803737u+note*747796405u)|1u;
     for(size_t i=0; i<chosen->drift.size(); ++i)
         chosen->drift[i].reset(static_cast<uint32_t>(clock*747796405u + static_cast<uint64_t>(note)*2891336453u + i*277803737u),sr);
+}
+void DroneEngine::setReservedOctaves(uint16_t mask)
+{
+    if(mask==reservedOctaves)return;
+    reservedOctaves=mask;
+    for(auto& v:voices)if(v.note>=0 && (mask & (1u<<(v.note/12))))v.stop(true);
 }
 void DroneEngine::noteOff(int channel, int note, int source)
 {

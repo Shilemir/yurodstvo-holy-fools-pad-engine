@@ -10,7 +10,7 @@ inline void runWheelEQTests()
         "14-bit Pitch Bend has exact -100, 0 and +100 cent endpoints");
     waveCheck(DroneProcessor::pitchToCents(8191) < 0 && DroneProcessor::pitchToCents(8193) > 0
         && std::abs(DroneProcessor::pitchToCents(8193)) < 0.013f, "Pitch Bend retains 14-bit resolution around centre");
-    waveCheck(ThreeBandEQ::ccToDb(0) == -12 && ThreeBandEQ::ccToDb(64) == 0 && ThreeBandEQ::ccToDb(127) == 12,
+    waveCheck(ThreeBandEQ::ccToDb(0) == -15 && ThreeBandEQ::ccToDb(64) == 0 && ThreeBandEQ::ccToDb(127) == 15,
         "EQ CC endpoints and physical centre 64 map to -12, 0 and +12 dB");
     DroneProcessor p; p.prepareToPlay(48000, 256); juce::AudioBuffer<float> audio(2, 256);
     auto send = [&](juce::MidiMessage message) { juce::MidiBuffer m; m.addEvent(message, 0); p.processBlock(audio, m); };
@@ -85,7 +85,7 @@ inline void runWheelEQTests()
             neutral = neutral && std::abs(out[0] - x) < 0.000001f; isolated = isolated && out[1] == 0;
         }
         waveCheck(neutral && isolated, "Neutral EQ is transparent and stereo channel states are isolated");
-        for (int band = 0; band < 3; ++band) for (float db : { -12.0f, 12.0f })
+        for (int band = 0; band < 3; ++band) for (float db : { -15.0f, 15.0f })
         {
             ThreeBandEQ eq; std::array<float, 3> gains {}; gains[static_cast<size_t>(band)] = db; eq.prepare(sr, gains);
             const double f = band == 0 ? 20 : band == 1 ? 1000 : sr * 0.40;
@@ -97,7 +97,7 @@ inline void runWheelEQTests()
                 if (i >= n / 2) { inEnergy += x * x; outEnergy += out[0] * out[0]; }
             }
             const double measured = 20 * std::log10(std::sqrt(outEnergy / inEnergy));
-            waveCheck(std::abs(measured - db) < 0.65, "Measured shelf/peak response matches requested +/-12 dB with no global compensation");
+            waveCheck(std::abs(measured - db) < 0.65, "Measured shelf/peak response matches requested +/-15 dB with no global compensation");
         }
         ThreeBandEQ moving; moving.prepare(sr); bool stable = true; float previous = 0, maxStep = 0;
         for (int i = 0; i < static_cast<int>(sr); ++i)
@@ -131,7 +131,8 @@ inline void runWheelEQTests()
     pitch->setValue(100, juce::sendNotificationSync); pitch->onDragEnd(); mod->setValue(33, juce::sendNotificationSync);
     waveCheck(b.currentDetune() == 0 && b.modulation.load() == 33, "Mouse Pitch springs to centre while mouse Mod latches its value");
     const auto quote = DroneEditor::footerQuote();
-    waveCheck(quote == juce::String::fromUTF8(u8"Никто не обольщай самого себя. Если кто из вас думает быть мудрым в веке сем, тот будь безумным, чтобы быть мудрым"), "Cyrillic quotation matches the user's exact text");
+    waveCheck(quote == "Let no man deceive himself. If any man among you seemeth to be wise in this world, let him become a fool, that he may be wise.", "KJV quotation matches the requested words and punctuation");
+    waveCheck(DroneEditor::footerAttribution()=="1 CORINTHIANS 3:18 - KJV", "KJV attribution uses the exact ASCII separator");
     const auto face = editor->getLookAndFeel().getTextButtonFont(*panic, 30).getTypefacePtr();
     bool glyphs = true;
     for (int i = 0; i < quote.length(); ++i) if (quote[i] > 32)
@@ -139,9 +140,7 @@ inline void runWheelEQTests()
         const bool present = face->getNominalGlyphForCodepoint(quote[i]).has_value();
         glyphs = glyphs && present;
     }
-    waveCheck(glyphs, "Embedded ecclesiastical typeface contains every Cyrillic and punctuation glyph in the quote");
-    waveCheck(quote[0] == 0x041d && quote[1] == 0x0438 && quote.length() == 114,
-        "Cyrillic quotation is decoded as Unicode rather than the Windows source codepage");
+    waveCheck(glyphs, "Embedded ecclesiastical typeface contains every KJV inscription glyph");
     DroneProcessor full; setPlain(full, "reverb", 1); setPlain(full, "delay", 1); setPlain(full, "attack", 0.005f);
     setPlain(full, "eqBass", 12); setPlain(full, "eqMid", 12); setPlain(full, "eqTreble", 12); full.prepareToPlay(48000, 256);
     bool safe = true;

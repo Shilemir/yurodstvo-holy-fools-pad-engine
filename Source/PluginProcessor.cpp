@@ -12,9 +12,9 @@ juce::AudioProcessorValueTreeState::ParameterLayout DroneProcessor::makeParamete
     std::array<juce::NormalisableRange<float>, 5> ranges {
         juce::NormalisableRange<float>(-50, 50, 0.01f),
         juce::NormalisableRange<float>(0, 1, 0.0001f),
-        juce::NormalisableRange<float>(0.005f, 30, 0.001f),
-        juce::NormalisableRange<float>(0.005f, 30, 0.001f),
-        juce::NormalisableRange<float>(0, 1, 0.0001f) };
+        juce::NormalisableRange<float>(0.005f, yuro::maxEnvelopeSeconds, 0.001f),
+        juce::NormalisableRange<float>(0.005f, yuro::maxEnvelopeSeconds, 0.001f),
+        juce::NormalisableRange<float>(0, yuro::maxMasterGain, 0.0001f) };
     ranges[2].setSkewForCentre(5.0f); ranges[3].setSkewForCentre(5.0f);
     for (size_t i = 0; i < names.size(); ++i)
         result.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(yuro::parameterIds[i], 1),
@@ -30,7 +30,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout DroneProcessor::makeParamete
     result.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("delay", 1), "Delay", juce::NormalisableRange<float>(0, 1, 0.0001f), 0.0f));
     for (const auto& band : { std::pair<const char*, const char*>("eqBass", "Bass"), { "eqMid", "Mid" }, { "eqTreble", "Treble" } })
         result.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(band.first, 1), band.second,
-            juce::NormalisableRange<float>(-12, 12, 0.01f), 0.0f, juce::AudioParameterFloatAttributes().withLabel("dB")));
+            juce::NormalisableRange<float>(-yuro::maxEqDb, yuro::maxEqDb, 0.01f), 0.0f, juce::AudioParameterFloatAttributes().withLabel("dB")));
     result.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("pitchDetune", 1), "Pitch Detune",
         juce::NormalisableRange<float>(-100, 100), 0.0f, juce::AudioParameterFloatAttributes().withLabel("ct")));
     result.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("shimmer", 1), "Shimmer",
@@ -53,7 +53,9 @@ DroneProcessor::DroneProcessor()
     }
     for (auto& n : notes) n.store(false);
     for(auto& level:noteLevels)level.store(0);
-    for(auto& armed:pickupArmed)armed.store(false);previousControl.fill(-1);
+    for(auto& armed:pickupArmed)armed.store(false);
+    for(auto& relative:encoderRelative)relative.store(false);
+    previousControl.fill(-1);
     for (size_t osc = 0; osc < 2; ++osc)
     {
         waveObjects[osc] = parameters.getParameter(yuro::waveformIds[osc]);
@@ -140,8 +142,9 @@ void DroneProcessor::prepareToPlay(double sr, int)
     mouseInput.suppress(); audioMouseNote = -1; mouseEpoch.fetch_add(1);
     cancelMouseRequested.store(false); voices.store(0); for (auto& note : notes) note.store(false);
     for(auto& level:noteLevels)level.store(0);
-    for(auto& armed:pickupArmed)armed.store(false);previousControl.fill(-1);
+    // Keep the last physical CC position and armed fader pickup across audio restarts.
     engine.setPolyphony(polyphonyLimit());
+    engine.setReservedOctaves(reservedOctaveMask());
     pitchActive.store(false); pitchValue.store(8192); modulation.store(0);
     equalizer.prepare(sr, effectiveEQ());
     engine.setTargets(effectiveValues());
@@ -171,7 +174,11 @@ void DroneProcessor::updateSacredTargets()
 void DroneProcessor::processBlock(juce::AudioBuffer<float>& audio, juce::MidiBuffer& midi)
 {
     juce::ScopedNoDenormals noDenormals;
+    if(auto* playhead=getPlayHead())
+        if(const auto position=playhead->getPosition())
+            if(const auto bpm=position->getBpm())effects.setTempoBpm(*bpm);
     audio.clear();
+    engine.setReservedOctaves(reservedOctaveMask());
     updateSacredTargets();
     engine.setPolyphony(polyphonyLimit());
     engine.setTargets(effectiveValues());
@@ -239,24 +246,39 @@ void DroneProcessor::processBlock(juce::AudioBuffer<float>& audio, juce::MidiBuf
             const int control = yuro::controlIndex(cc);
             if (control >= 0)
             {
-                if(waitForPickup(control,value))continue;
+                float normalized=static_cast<float>(value)/127.0f;
+                if(control<6 || control>=10)
+                {
+                    const int previous=previousControl[static_cast<size_t>(control)];
+                    previousControl[static_cast<size_t>(control)]=value;
+                    if(encoderRelative[static_cast<size_t>(control)].load())
+                    {
+                        // MiniLab encoders send absolute 0..127 CC. After a preset,
+                        // prayer, host restore or mouse edit, use movement deltas.
+                        // A first observation establishes a baseline safely.
+                        const int delta=previous<0 ? 0 : juce::jlimit(-8,8,value-previous);
+                        if(delta==0)continue;
+                        normalized=juce::jlimit(0.0f,1.0f,currentControlNormalized(control)+delta/127.0f);
+                    }
+                }
+                else if(waitForPickup(control,value))continue;
                 if (control >= 10)
                 {
-                    pendingSacred[static_cast<size_t>(control-10)].store(static_cast<float>(value)/127);
+                    pendingSacred[static_cast<size_t>(control-10)].store(normalized);
                     lastControlValue.store(value); lastControlChannel.store(message.getChannel()); lastControlCC.store(cc);
                     lastControl.store(control); controlHits.fetch_add(1); updateSacredTargets(); continue;
                 }
                 if (control == 0)
                 {
-                    pendingShimmer.store(static_cast<float>(value) / 127);
+                    pendingShimmer.store(normalized);
                     lastControlValue.store(value); lastControlChannel.store(message.getChannel()); lastControlCC.store(cc);
                     lastControl.store(0); controlHits.fetch_add(1); updateEffectTargets(); continue;
                 }
                 // Handle parameter CCs BEFORE pad routing, regardless of pad mode/channel.
-                if (control < 4) pending[static_cast<size_t>(control)].store(static_cast<float>(value) / 127);
-                else if (control < 6) pendingEffects[static_cast<size_t>(control - 4)].store(static_cast<float>(value) / 127);
-                else if (control == 6) pending[4].store(static_cast<float>(value) / 127);
-                else pendingEQ[static_cast<size_t>(control - 7)].store(eqObjects[static_cast<size_t>(control - 7)]->convertTo0to1(ThreeBandEQ::ccToDb(value)));
+                if (control < 4) pending[static_cast<size_t>(control)].store(normalized);
+                else if (control < 6) pendingEffects[static_cast<size_t>(control - 4)].store(normalized);
+                else if (control == 9) pending[4].store(static_cast<float>(value) / 127);
+                else pendingEQ[static_cast<size_t>(control - 6)].store(eqObjects[static_cast<size_t>(control - 6)]->convertTo0to1(ThreeBandEQ::ccToDb(value)));
                 lastControlValue.store(value); lastControlChannel.store(message.getChannel());
                 lastControlCC.store(cc);
                 lastControl.store(control); controlHits.fetch_add(1);
@@ -285,7 +307,7 @@ void DroneProcessor::processBlock(juce::AudioBuffer<float>& audio, juce::MidiBuf
             if (message.isNoteOff()) engine.noteOff(message.getChannel(), message.getNoteNumber());
             continue;
         }
-        if (message.isNoteOn()) engine.noteOn(message.getChannel(), message.getNoteNumber(), message.getFloatVelocity());
+        if (message.isNoteOn() && !isReservedNote(message.getNoteNumber())) engine.noteOn(message.getChannel(), message.getNoteNumber(), message.getFloatVelocity());
         else if (message.isNoteOff()) engine.noteOff(message.getChannel(), message.getNoteNumber());
     }
     renderUntil(audio.getNumSamples());
@@ -295,13 +317,40 @@ void DroneProcessor::processBlock(juce::AudioBuffer<float>& audio, juce::MidiBuf
     const auto levels=engine.envelopeLevels();
     for(size_t n=0;n<levels.size();++n)noteLevels[n].store(levels[n],std::memory_order_relaxed);
 }
+uint16_t DroneProcessor::reservedOctaveMask() const
+{
+    uint16_t mask=0;
+    if(juce::roundToInt(padConfig[3]->load())==3)
+        for(const auto& entry:padRouter.learned)
+        {
+            const int code=entry.load();if(code>=0 && (code>>12)==1)mask|=static_cast<uint16_t>(1u<<((code&127)/12));
+        }
+    if(mask==0)
+    {
+        const int first=juce::roundToInt(padConfig[1]->load());
+        for(int n=first;n<=juce::jmin(127,first+7);++n)mask|=static_cast<uint16_t>(1u<<(n/12));
+    }
+    return mask;
+}
+bool DroneProcessor::playableView(int first) const
+{
+    if(first<0 || first>96 || first%12!=0)return false;
+    for(int n=first;n<=first+24;++n)if(isReservedNote(n))return false;
+    return true;
+}
+int DroneProcessor::safeKeyboardStart(int preferred) const
+{
+    int chosen=-1,distance=999;
+    for(int n=0;n<=96;n+=12)if(playableView(n)&&std::abs(n-preferred)<distance){chosen=n;distance=std::abs(n-preferred);}
+    return chosen;
+}
 juce::RangedAudioParameter* DroneProcessor::controlParameter(int control) const
 {
     if(control==0)return shimmerParameter;
     if(control<4)return parameterObjects[static_cast<size_t>(control)];
     if(control<6)return effectObjects[static_cast<size_t>(control-4)];
-    if(control==6)return parameterObjects[4];
-    if(control<10)return eqObjects[static_cast<size_t>(control-7)];
+    if(control<9)return eqObjects[static_cast<size_t>(control-6)];
+    if(control==9)return parameterObjects[4];
     return sacredParameters[static_cast<size_t>(control-10)];
 }
 bool DroneProcessor::waitForPickup(int control,int value)
@@ -315,23 +364,31 @@ bool DroneProcessor::waitForPickup(int control,int value)
     if(near || crossed){pickupArmed[index].store(false);return false;}
     return true;
 }
+float DroneProcessor::currentControlNormalized(int control) const
+{
+    if(control==0){const auto value=pendingShimmer.load();return value>=0 ? value : shimmerParameter->getValue();}
+    if(control<4){const auto value=pending[static_cast<size_t>(control)].load();return value>=0 ? value : parameterObjects[static_cast<size_t>(control)]->getValue();}
+    if(control<6){const auto value=pendingEffects[static_cast<size_t>(control-4)].load();return value>=0 ? value : effectObjects[static_cast<size_t>(control-4)]->getValue();}
+    const auto value=pendingSacred[static_cast<size_t>(control-10)].load();
+    return value>=0 ? value : sacredParameters[static_cast<size_t>(control-10)]->getValue();
+}
 void DroneProcessor::randomizeSound()
 {
-    // Only these controls use pickup. Master and expression are never touched.
-    for(size_t i=0;i<pickupArmed.size();++i)if(i!=6)pickupArmed[i].store(true);
+    // Encoders follow movements; absolute EQ faders retain their pickup protection.
+    for(size_t i=0;i<encoderRelative.size();++i)if(i<6 || i>=10)encoderRelative[i].store(true);
+    for(size_t i=6;i<9;++i)pickupArmed[i].store(true);
     pendingShimmer.store(-1);for(size_t i=1;i<4;++i)pending[i].store(-1);
     for(auto& v:pendingEffects)v.store(-1);for(auto& v:pendingEQ)v.store(-1);
     for(auto& v:pendingSacred)v.store(-1);for(auto& v:pendingWaves)v.store(-1);
-    constexpr std::array<const char*,13> ids {"shimmer","mix","attack","release","reverb","delay","harmony","madness","eqBass","eqMid","eqTreble","osc1Waveform","osc2Waveform"};
-    for(size_t i=0;i<ids.size();++i)
+    for(size_t i=0;i<yuro::soundIds.size();++i)
     {
-        auto* parameter=parameters.getParameter(ids[i]);
+        auto* parameter=parameters.getParameter(yuro::soundIds[i]);
         float value=inspirationRandom.nextFloat();
         if(i==2 || i==3)
         {
             if(i==3)value=std::sqrt(value);
-            const float seconds=inspirationRandom.nextFloat()<.2f ? .005f+29.995f*value
-                : std::exp(std::log(.005f)+value*std::log(6000.0f));
+            const float seconds=inspirationRandom.nextFloat()<.2f ? .005f+(yuro::maxEnvelopeSeconds-.005f)*value
+                : std::exp(std::log(.005f)+value*std::log(yuro::maxEnvelopeSeconds/.005f));
             value=parameter->convertTo0to1(seconds);
         }
         else if(i>=8 && i<11)
@@ -341,6 +398,42 @@ void DroneProcessor::randomizeSound()
         }
         else if(i>=11)value=parameter->convertTo0to1(static_cast<float>(inspirationRandom.nextInt(4)));
         parameter->beginChangeGesture();parameter->setValueNotifyingHost(value);parameter->endChangeGesture();
+    }
+}
+yuro::SoundPreset DroneProcessor::captureSound() const
+{
+    yuro::SoundPreset sound;
+    for(size_t i=0;i<yuro::soundIds.size();++i)
+    {
+        const auto* parameter=parameters.getParameter(yuro::soundIds[i]);
+        float normalized=parameter->getValue();
+        if(i==0 && pendingShimmer.load()>=0)normalized=pendingShimmer.load();
+        else if(i>=1 && i<=3 && pending[i].load()>=0)normalized=pending[i].load();
+        else if(i>=4 && i<=5 && pendingEffects[i-4].load()>=0)normalized=pendingEffects[i-4].load();
+        else if(i>=6 && i<=7 && pendingSacred[i-6].load()>=0)normalized=pendingSacred[i-6].load();
+        else if(i>=8 && i<=10 && pendingEQ[i-8].load()>=0)normalized=pendingEQ[i-8].load();
+        else if(i>=11 && pendingWaves[i-11].load()>=0)normalized=parameter->convertTo0to1(static_cast<float>(pendingWaves[i-11].load()));
+        sound.values[i]=parameter->convertFrom0to1(normalized);
+    }
+    return sound;
+}
+void DroneProcessor::applySoundPreset(const yuro::SoundPreset& sound)
+{
+    for(size_t i=0;i<encoderRelative.size();++i)if(i<6 || i>=10)encoderRelative[i].store(true);
+    for(size_t i=6;i<9;++i)pickupArmed[i].store(true);
+    pendingShimmer.store(-1);
+    for(size_t i=1;i<4;++i)pending[i].store(-1);
+    for(auto& value:pendingEffects)value.store(-1);
+    for(auto& value:pendingSacred)value.store(-1);
+    for(auto& value:pendingEQ)value.store(-1);
+    for(auto& value:pendingWaves)value.store(-1);
+    for(size_t i=0;i<yuro::soundIds.size();++i)
+    {
+        auto* parameter=parameters.getParameter(yuro::soundIds[i]);
+        const auto legal=parameter->getNormalisableRange().snapToLegalValue(sound.values[i]);
+        parameter->beginChangeGesture();
+        parameter->setValueNotifyingHost(parameter->convertTo0to1(legal));
+        parameter->endChangeGesture();
     }
 }
 void DroneProcessor::flushMidiParameters()
@@ -435,13 +528,14 @@ void DroneProcessor::getStateInformation(juce::MemoryBlock& dest)
     // copyState is deliberately outside processBlock. Include the latest CC even if
     // the message-thread timer has not run yet. Never call host callbacks here.
     auto state = parameters.copyState();
-    state.setProperty("schemaVersion", 8, nullptr);
+    state.setProperty("schemaVersion", 9, nullptr);
     for(size_t i=0;i<2;++i)
         if(const float value=pendingSacred[i].load(); value>=0)
             state.getChildWithProperty("id",i==0 ? "harmony" : "madness").setProperty("value",value,nullptr);
     if (const float shimmer = pendingShimmer.load(); shimmer >= 0)
         state.getChildWithProperty("id", "shimmer").setProperty("value", shimmer, nullptr);
     state.setProperty("detuneSource", detuneSource.load(), nullptr);
+    state.setProperty("keyboardFirstNote",keyboardFirstNote.load(),nullptr);
     for (size_t i = 0; i < 3; ++i)
         if (const float value = pendingEQ[i].load(); value >= 0)
             state.getChildWithProperty("id", i == 0 ? "eqBass" : i == 1 ? "eqMid" : "eqTreble").setProperty("value", eqObjects[i]->convertFrom0to1(value), nullptr);
@@ -479,7 +573,8 @@ void DroneProcessor::setStateInformation(const void* data, int size)
             for (auto& p : pendingEQ) p.store(-1);
             cancelMouseThrough.store(mouseInput.watermark()); cancelMouseRequested.store(true); mouseEpoch.fetch_add(1);
             pendingShimmer.store(-1);
-            for(auto& armed:pickupArmed)armed.store(false);
+            for(size_t i=6;i<10;++i)pickupArmed[i].store(true);
+            for(size_t i=0;i<encoderRelative.size();++i)if(i<6 || i>=10)encoderRelative[i].store(true);
             for(auto& value:pendingSacred) value.store(-1);
             pitchActive.store(false); pitchValue.store(8192); modulation.store(0);
             pendingPadMode.store(-1); padRouter.cancelLearning();
@@ -512,7 +607,14 @@ void DroneProcessor::setStateInformation(const void* data, int size)
                 padRouter.learned[i].store(value >= 0 && value <= PadRouter::encode(2, 16, 127) ? value : -1);
             }
             const int source = static_cast<int>(state.getProperty("schemaVersion", 0)) < 6 ? 0 : juce::jlimit(0, 1, static_cast<int>(state.getProperty("detuneSource", 1)));
+            for(auto child:state)
+            {
+                const auto id=child["id"].toString();
+                if(auto* parameter=parameters.getParameter(id))
+                    if(child.hasProperty("value"))child.setProperty("value",parameter->getNormalisableRange().snapToLegalValue(static_cast<float>(child["value"])),nullptr);
+            }
             restoringState.store(true); parameters.replaceState(state); restoringState.store(false); detuneSource.store(source);
+            keyboardFirstNote.store(safeKeyboardStart(juce::jlimit(0,96,static_cast<int>(state.getProperty("keyboardFirstNote",48)))/12*12));
         }
 }
 juce::AudioProcessorEditor* DroneProcessor::createEditor() { return new DroneEditor(*this); }

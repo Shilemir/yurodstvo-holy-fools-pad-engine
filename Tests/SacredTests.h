@@ -31,7 +31,9 @@ inline void compareSacredBypass(const juce::File& root,const juce::String& curre
     {
         const auto name=p->getName(80);
         if(name=="Attack")p->setValueNotifyingHost(0);
-        if(name=="Reverb" || name=="Delay" || name=="Shimmer")p->setValueNotifyingHost(.35f);
+        // Delay timing intentionally changed to host quarter notes in 0.13.0.
+        // Keep it bypassed here so this comparison still isolates unchanged DSP.
+        if(name=="Reverb" || name=="Shimmer")p->setValueNotifyingHost(.35f);
     }
     juce::MemoryBlock state;before->getStateInformation(state);
     after->setStateInformation(state.getData(),static_cast<int>(state.getSize()));
@@ -48,12 +50,19 @@ inline void compareSacredBypass(const juce::File& root,const juce::String& curre
         for(int ch=0;ch<2;++ch)for(int i=0;i<256;++i)maxError=std::max(maxError,static_cast<double>(std::abs(a.getSample(ch,i)-b.getSample(ch,i))));
     }
     before->releaseResources();after->releaseResources();
-    std::cout<<"0.8.1 vs 0.9.0 zero-new-modules VST3 maximum error="<<maxError<<std::endl;
-    waveCheck(maxError<1e-6,"Old VST3 state renders equivalently with new modules disabled, including FX, pitch and Release");
+    std::cout<<"0.8.1 vs current zero-new-modules VST3 maximum error="<<maxError<<std::endl;
+    waveCheck(maxError<1e-6,"Old VST3 state renders equivalently with new modules and changed Delay disabled, including remaining FX, pitch and Release");
     bool received=false;
-    after->prepareToPlay(48000,256);juce::MidiBuffer m;
-    m.addEvent(juce::MidiMessage::controllerEvent(1,116,127),0);m.addEvent(juce::MidiMessage::controllerEvent(1,117,127),0);
-    after->processBlock(b,m);after->getStateInformation(state);
+    after->prepareToPlay(48000,256);
+    for(int value=0;value<=127;value=juce::jmin(127,value+8))
+    {
+        juce::MidiBuffer m;
+        m.addEvent(juce::MidiMessage::controllerEvent(1,116,value),0);
+        m.addEvent(juce::MidiMessage::controllerEvent(1,117,value),0);
+        after->processBlock(b,m);
+        if(value==127)break;
+    }
+    after->getStateInformation(state);
     auto reloaded=load(currentPath);reloaded->setStateInformation(state.getData(),static_cast<int>(state.getSize()));
     int matches=0;
     for(auto* p:reloaded->getParameters())if(p->getName(80)=="Harmony" || p->getName(80)=="Madness")
@@ -194,7 +203,8 @@ inline void runSacredTests(const juce::File& root)
     waveCheck(std::abs(bendCents-100)<8,"Doubt retains its full global semitone bend even with maximum Madness and Hesitation");
 
     DroneProcessor stress;setPlain(stress,"attack",.005f);setPlain(stress,"release",2);setPlain(stress,"polyphony",16);
-    for(const char* id : {"harmony","madness","shimmer","reverb","delay","master"}) setPlain(stress,id,1);
+    for(const char* id : {"harmony","madness","shimmer","reverb","delay"}) setPlain(stress,id,1);
+    setPlain(stress,"master",yuro::maxMasterGain);
     for(const char* id : {"eqBass","eqMid","eqTreble"}) setPlain(stress,id,12);
     stress.prepareToPlay(48000,256);double time=0,worst=0;bool safe=true;float peak=0;
     for(int block=0;block<4800;++block)

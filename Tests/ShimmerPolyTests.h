@@ -197,9 +197,9 @@ inline void runShimmerPolyTests(const juce::File& root)
     juce::MidiBuffer off; off.addEvent(juce::MidiMessage::allNotesOff(1),0); full.processBlock(audio,off);
     for(int i=0;i<100;++i) {juce::MidiBuffer empty; full.processBlock(audio,empty);}
     waveCheck(full.voices.load()==16,"Sixteen voices retain their long Release after Note Off");
-    setPlain(full,"master",0);float muted=0;
+    full.flushMidiParameters();setPlain(full,"master",0);float muted=0;
     for(int i=0;i<100;++i) {juce::MidiBuffer empty;full.processBlock(audio,empty);if(i>50)muted=std::max(muted,audio.getMagnitude(0,256));}
-    waveCheck(muted==0,"F1 Master zero mutes Shimmer as well as EQ, Reverb, Delay and sixteen release tails");
+    waveCheck(muted==0,"F4 Master zero mutes Shimmer as well as EQ, Reverb, Delay and sixteen release tails");
     setPlain(full,"master",1);
     full.panicRequested.store(true); float residue=0;
     for(int i=0;i<400;++i) {juce::MidiBuffer empty; full.processBlock(audio,empty); if(i>200) residue=std::max(residue,audio.getMagnitude(0,256));}
@@ -208,7 +208,7 @@ inline void runShimmerPolyTests(const juce::File& root)
 
 inline void compareNominalVSTLevels(const juce::File& root, const juce::String& current, const juce::String& previous)
 {
-    auto measure = [](const juce::String& path)
+    auto measure = [](const juce::String& path,bool isCurrent)
     {
         juce::VST3PluginFormat format; juce::OwnedArray<juce::PluginDescription> descriptions; format.findAllTypesForFile(descriptions,path);
         if(descriptions.isEmpty()) throw std::runtime_error("Cannot scan nominal comparison VST3");
@@ -218,7 +218,8 @@ inline void compareNominalVSTLevels(const juce::File& root, const juce::String& 
         {
             const auto name=p->getName(80);
             if(name=="Attack"||name=="Reverb"||name=="Delay"||name=="Shimmer") p->setValueNotifyingHost(0);
-            if(name=="Oscillator Mix"||name=="Master Volume"||name=="Pitch Detune"||name=="Oscillator Detune"||name=="Bass"||name=="Mid"||name=="Treble") p->setValueNotifyingHost(0.5f);
+            if(name=="Master Volume") p->setValueNotifyingHost(isCurrent?0.5f/yuro::maxMasterGain:0.5f);
+            if(name=="Oscillator Mix"||name=="Pitch Detune"||name=="Oscillator Detune"||name=="Bass"||name=="Mid"||name=="Treble") p->setValueNotifyingHost(0.5f);
         }
         instance->prepareToPlay(48000,512); juce::AudioBuffer<float> audio(2,512);
         for(int i=0;i<100;++i){juce::MidiBuffer m;instance->processBlock(audio,m);}
@@ -232,9 +233,9 @@ inline void compareNominalVSTLevels(const juce::File& root, const juce::String& 
         }
         instance->releaseResources();return std::array<double,2>{std::sqrt(energy/count),peak};
     };
-    const auto before=measure(previous),after=measure(current);
+    const auto before=measure(previous,false),after=measure(current,true);
     const double rmsDb=20*std::log10(after[0]/before[0]),peakDb=20*std::log10(after[1]/before[1]);
-    std::cout<<"Actual VST3 neutral chord 0.6 RMS="<<before[0]<<" peak="<<before[1]<<"; 0.8 RMS="<<after[0]<<" peak="<<after[1]<<"; change RMS="<<rmsDb<<" dB, peak="<<peakDb<<" dB"<<std::endl;
-    waveCheck(std::abs(rmsDb-3)<0.01&&std::abs(peakDb-3)<0.01,"Actual 0.6 and 0.8 VST3 neutral chord RMS and peak both increase by 3 dB");
-    root.getChildFile("Nominal-levels-0.8.csv").replaceWithText("version,rms_linear,peak_linear\n0.6,"+juce::String(before[0],9)+","+juce::String(before[1],9)+"\n0.8,"+juce::String(after[0],9)+","+juce::String(after[1],9)+"\n");
+    std::cout<<"Actual VST3 neutral chord 0.6 RMS="<<before[0]<<" peak="<<before[1]<<"; 0.11 RMS="<<after[0]<<" peak="<<after[1]<<"; change RMS="<<rmsDb<<" dB, peak="<<peakDb<<" dB"<<std::endl;
+    waveCheck(std::abs(rmsDb-3)<0.01&&std::abs(peakDb-3)<0.01,"At matched plain Master gain, the current VST3 retains the measured +3 dB nominal level");
+    root.getChildFile("Nominal-levels-0.11.0.csv").replaceWithText("version,rms_linear,peak_linear\n0.6,"+juce::String(before[0],9)+","+juce::String(before[1],9)+"\n0.11,"+juce::String(after[0],9)+","+juce::String(after[1],9)+"\n");
 }

@@ -3,6 +3,7 @@
 #pragma once
 #include <juce_audio_basics/juce_audio_basics.h>
 #include <array>
+#include "ParameterLimits.h"
 
 class ThreeBandEQ
 {
@@ -14,7 +15,7 @@ public:
     static float ccToDb(int value)
     {
         value = juce::jlimit(0, 127, value);
-        return value <= 64 ? 12.0f * (value - 64) / 64.0f : 12.0f * (value - 64) / 63.0f;
+        return value <= 64 ? yuro::maxEqDb * (value - 64) / 64.0f : yuro::maxEqDb * (value - 64) / 63.0f;
     }
 private:
     using Coefficients = std::array<double, 5>;

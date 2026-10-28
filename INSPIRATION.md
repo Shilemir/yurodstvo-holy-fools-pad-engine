@@ -7,7 +7,7 @@ controller CC assignments, artwork, font and window size are unchanged.
 
 ## PRAY FOR INSPIRATION
 
-The single header button generates fresh settings for E1-E8, the three EQ bands
+The single left-panel button generates fresh settings for E1-E8, the three EQ bands
 and both independent waveform choices. Matching oscillator waveforms are valid.
 Master, legacy oscillator detune, Doubt, Faith, polyphony, MIDI routing and host
 configuration are excluded. There is no randomization-specific gain compensation.
@@ -25,15 +25,14 @@ existing parameter objects, not DSP internals. Audio rendering retains the
 existing gain/effect/voice smoothing and waveform crossfades; held notes are not
 stopped. The warm button flash lasts roughly 0.17 seconds.
 
-### Hardware pickup after a prayer
+### Hardware control after a prayer
 
-Because MiniLab controls are not motorized, the eleven affected absolute controls
-use pickup after randomization. Move a knob or EQ fader through the new displayed
-position to take control. Reaching within about one MIDI step or crossing that
-position enables normal absolute control. Master and pads never enter pickup.
-Pickup follows the current parameter value if it is subsequently edited by mouse.
-Its transient flags are cleared when audio is prepared or a state is loaded;
-they do not alter saved parameter values or the established MIDI mapping.
+In local version 0.14.0, E1–E8 use the difference between successive absolute
+CC values after a prayer, preset, state restore or mouse edit. They change the
+current sound without travelling to the previous physical position. If no CC
+from an encoder has been seen, its first value establishes a baseline without a
+jump. F1–F3 still use pickup after a sound change. A mouse-edited F4 MASTER also
+uses pickup to prevent a sudden volume jump. Pads retain their mapping.
 
 ## Recurring HARMONY
 

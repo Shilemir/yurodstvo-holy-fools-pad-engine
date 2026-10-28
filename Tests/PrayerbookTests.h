@@ -13,7 +13,7 @@ inline void runPrayerbookTests()
     {
         juce::MidiBuffer midi; midi.addEvent(message, 12); p.processBlock(audio, midi);
     };
-    waveCheck(p.getName() == "YURODSTVO - Holy Fool's Pad Engine", "Instrument reports the Holy Fool name");
+    waveCheck(p.getName() == yuro::productName, "Instrument reports the current product name");
     waveCheck(p.parameters.getRawParameterValue("padInput")->load() == 2
         && p.parameters.getRawParameterValue("padChannel")->load() == 0, "New instances start in MiniLab Auto on any channel");
     send(juce::MidiMessage::noteOn(1, 38, 1.0f));
@@ -93,10 +93,10 @@ inline void runPrayerbookTests()
         for (int i = 1; i < static_cast<int>(sr * 0.9); ++i)
         {
             const auto out = fx.process(0);
-            if (i >= static_cast<int>(sr * 0.56) && i <= static_cast<int>(sr * 0.58)) leftEcho = std::max(leftEcho, std::abs(out[0]));
-            if (i >= static_cast<int>(sr * 0.75) && i <= static_cast<int>(sr * 0.77)) rightEcho = std::max(rightEcho, std::abs(out[1]));
+            if (i >= static_cast<int>(sr * 0.49) && i <= static_cast<int>(sr * 0.51)) leftEcho = std::max(leftEcho, std::abs(out[0]));
+            if (i >= static_cast<int>(sr * 0.74) && i <= static_cast<int>(sr * 0.76)) rightEcho = std::max(rightEcho, std::abs(out[1]));
         }
-        waveCheck(leftEcho > 0.05f && rightEcho > 0.05f, "Delay impulse produces stereo echoes at 570 and 760 ms");
+        waveCheck(leftEcho > 0.05f && rightEcho > 0.05f, "At fallback 120 BPM, Delay echoes at quarter and dotted-quarter intervals");
         fx.prepare(sr, 1); fx.setTargets(1, 0, 1);
         for (int i = 0; i < static_cast<int>(sr / 5); ++i) fx.process(0);
         fx.process(0.25f);
