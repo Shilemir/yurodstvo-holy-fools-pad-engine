@@ -1,21 +1,19 @@
-# Publishing the AGPL distribution
+# Publishing YURODSTVO 0.10.1
 
 Repository: https://github.com/Shilemir/yurodstvo-holy-fools-pad-engine
-Application version: 0.8.0. Open-source revision tag: v0.8.0-agpl.
-Keep the historical v0.8.0 tag unchanged; do not force-push or rewrite history.
-Only push the reviewed public repository's main branch and explicitly named tag.
-Never push the original private repository's master or historical tags.
+Application version and tag: 0.10.1 / v0.10.1. Preserve older tags and releases.
+Only push the reviewed public repository's main and explicitly named version tag.
+Never push the original private repository's master or all historical tags.
+Do not force-push, rewrite history, delete old releases or change visibility.
 
-Run the clean distribution build and technical checks, then package the complete
-Corresponding Source with release/package-source.ps1. Publish both Windows ZIPs,
-the Corresponding-Source ZIP and their three .sha256 sidecars with RELEASE-NOTES.md
-as a Pre-release. Keep the complete source archive available with the binaries.
-Update any earlier release to point recipients to the new licensing revision.
-Verify anonymous downloads and hashes, tag commit and GitHub's licence detection.
-The Git repository excludes JUCE (CMake fetches it); the source release includes
-its exact unmodified source and original notices for offline builds.
+Commit reviewed current files before the clean Release x64 build. Both formats
+must come from that same commit. Run build-distribution.ps1 and package-source.ps1;
+create a draft Pre-release with RELEASE-NOTES.md and recorded validation results.
+Upload both binary ZIPs, complete Corresponding Source and three SHA-256 sidecars.
+Check uploaded digests, tag commit and notes, then publish and verify anonymous
+downloads. Link directly to /releases/tag/v0.10.1; /releases/latest may skip prereleases.
 
-The original application and project-authored scripts/docs are AGPL-3.0-only.
-JUCE uses its AGPLv3 option. Third-party terms remain intact. Only the official
-PNG has the owner's CC0 dedication, to the extent of rights they can grant.
-See COPYRIGHT.md, THIRD_PARTY.md and docs/LICENCE-AUDIT.md for scope and evidence.
+Keep AGPL-3.0-only, JUCE's AGPL option, OFL font and original third-party notices.
+Only the official PNG has the owner's limited CC0 dedication. The complete
+source archive includes the exact official JUCE checkout for offline builds;
+JUCE is not vendored in the Git repository.

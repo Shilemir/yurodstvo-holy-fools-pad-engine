@@ -36,6 +36,9 @@ juce::AudioProcessorValueTreeState::ParameterLayout DroneProcessor::makeParamete
     result.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("shimmer", 1), "Shimmer",
         juce::NormalisableRange<float>(0, 1, 0.0001f), 0.0f));
     result.add(std::make_unique<juce::AudioParameterInt>(juce::ParameterID("polyphony", 1), "Polyphony", 1, 16, 8));
+    for (const auto& item : { std::pair<const char*,const char*>("harmony","Harmony"), {"madness","Madness"} })
+        result.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(item.first,1), item.second,
+            juce::NormalisableRange<float>(0,1,.0001f),0.0f));
     return result;
 }
 DroneProcessor::DroneProcessor()
@@ -49,6 +52,8 @@ DroneProcessor::DroneProcessor()
         pending[i].store(-1);
     }
     for (auto& n : notes) n.store(false);
+    for(auto& level:noteLevels)level.store(0);
+    for(auto& armed:pickupArmed)armed.store(false);previousControl.fill(-1);
     for (size_t osc = 0; osc < 2; ++osc)
     {
         waveObjects[osc] = parameters.getParameter(yuro::waveformIds[osc]);
@@ -71,6 +76,12 @@ DroneProcessor::DroneProcessor()
     pitchParameter = parameters.getParameter("pitchDetune"); pitchRaw = parameters.getRawParameterValue("pitchDetune");
     shimmerParameter = parameters.getParameter("shimmer"); shimmerRaw = parameters.getRawParameterValue("shimmer");
     polyphonyRaw = parameters.getRawParameterValue("polyphony");
+    for(size_t i=0; i<2; ++i)
+    {
+        const char* id=i==0 ? "harmony" : "madness";
+        sacredParameters[i]=parameters.getParameter(id); sacredRaw[i]=parameters.getRawParameterValue(id);
+        pendingSacred[i].store(-1);
+    }
     parameters.addParameterListener("detune", this); parameters.addParameterListener("pitchDetune", this);
     startTimerHz(60);
 }
@@ -81,11 +92,12 @@ DroneProcessor::~DroneProcessor()
 void DroneProcessor::parameterChanged(const juce::String& id, float)
 {
     if (restoringState.load()) return;
-    detuneSource.store(id == "detune" ? 0 : 1); pitchActive.store(false);
+    detuneSource.store(id == "detune" ? 0 : 1);
+    if (id == "pitchDetune") pitchActive.store(false);
 }
 float DroneProcessor::currentDetune() const
 {
-    return pitchActive.load() ? pitchToCents(pitchValue.load()) : detuneSource.load() == 0 ? raw[0]->load() : pitchRaw->load();
+    return pitchActive.load() ? pitchToCents(pitchValue.load()) : pitchRaw->load();
 }
 void DroneProcessor::setPitchFromMidi(int value)
 {
@@ -119,7 +131,7 @@ std::array<float, yuro::parameterCount> DroneProcessor::effectiveValues() const
         const auto cc = pending[i].load(std::memory_order_acquire);
         values[i] = cc >= 0 ? parameterObjects[i]->convertFrom0to1(cc) : raw[i]->load();
     }
-    values[0] = currentDetune();
+    values[0] = raw[0]->load(); // Relative oscillator offset is independent of global pitch.
     return values;
 }
 void DroneProcessor::prepareToPlay(double sr, int)
@@ -127,10 +139,14 @@ void DroneProcessor::prepareToPlay(double sr, int)
     engine.prepare(sr, true);
     mouseInput.suppress(); audioMouseNote = -1; mouseEpoch.fetch_add(1);
     cancelMouseRequested.store(false); voices.store(0); for (auto& note : notes) note.store(false);
+    for(auto& level:noteLevels)level.store(0);
+    for(auto& armed:pickupArmed)armed.store(false);previousControl.fill(-1);
     engine.setPolyphony(polyphonyLimit());
     pitchActive.store(false); pitchValue.store(8192); modulation.store(0);
     equalizer.prepare(sr, effectiveEQ());
     engine.setTargets(effectiveValues());
+    engine.setPitchCents(currentDetune());
+    updateSacredTargets();
     engine.setWaveforms({ currentWaveform(0), currentWaveform(1) });
     effects.prepare(sr, effectiveValues()[4]); updateEffectTargets();
 }
@@ -145,12 +161,21 @@ void DroneProcessor::updateEffectTargets()
     effects.setTargets(values[0], values[1], effectiveValues()[4]);
     const float shimmer = pendingShimmer.load(); effects.setShimmer(shimmer >= 0 ? shimmer : shimmerRaw->load());
 }
+void DroneProcessor::updateSacredTargets()
+{
+    std::array<float,2> value {};
+    for(size_t i=0;i<2;++i)
+    { const float pendingValue=pendingSacred[i].load(); value[i]=pendingValue>=0 ? pendingValue : sacredRaw[i]->load(); }
+    engine.setSacredTargets(value[0],value[1]);
+}
 void DroneProcessor::processBlock(juce::AudioBuffer<float>& audio, juce::MidiBuffer& midi)
 {
     juce::ScopedNoDenormals noDenormals;
     audio.clear();
+    updateSacredTargets();
     engine.setPolyphony(polyphonyLimit());
     engine.setTargets(effectiveValues());
+    engine.setPitchCents(currentDetune());
     engine.setWaveforms({ currentWaveform(0), currentWaveform(1) });
     updateEffectTargets();
     equalizer.setTargets(effectiveEQ());
@@ -176,9 +201,9 @@ void DroneProcessor::processBlock(juce::AudioBuffer<float>& audio, juce::MidiBuf
     {
         while (cursor < end)
         {
-            const auto mono = engine.nextSample();
+            const auto stereo = engine.nextStereoSample();
             const bool wasPanicFading = effects.isPanicFading();
-            const auto sample = effects.process(equalizer.process({ mono, mono }));
+            const auto sample = effects.process(equalizer.process(stereo));
             // Clear biquad memory at the existing silent FX reset, so its tiny
             // ring-out cannot reseed delay/reverb after PANIC has cleared them.
             if (wasPanicFading && !effects.isPanicFading()) equalizer.reset();
@@ -197,7 +222,8 @@ void DroneProcessor::processBlock(juce::AudioBuffer<float>& audio, juce::MidiBuf
         {
             setPitchFromMidi(message.getPitchWheelValue());
             lastMidiType.store(4); lastMidiChannel.store(message.getChannel());
-            engine.setTargets(effectiveValues()); continue;
+            engine.setTargets(effectiveValues());
+            engine.setPitchCents(currentDetune()); continue;
         }
         if (message.isNoteOnOrOff())
         {
@@ -209,10 +235,17 @@ void DroneProcessor::processBlock(juce::AudioBuffer<float>& audio, juce::MidiBuf
             lastCC.store(message.getControllerNumber()); lastCCValue.store(message.getControllerValue());
             lastMidiChannel.store(message.getChannel()); lastMidiType.store(3);
             const int cc = message.getControllerNumber(), value = message.getControllerValue();
-            if (cc == 1) { setModulation(value); continue; }
+            if (cc == 1) { setModulation(value); continue; } // FAITH is visual only.
             const int control = yuro::controlIndex(cc);
             if (control >= 0)
             {
+                if(waitForPickup(control,value))continue;
+                if (control >= 10)
+                {
+                    pendingSacred[static_cast<size_t>(control-10)].store(static_cast<float>(value)/127);
+                    lastControlValue.store(value); lastControlChannel.store(message.getChannel()); lastControlCC.store(cc);
+                    lastControl.store(control); controlHits.fetch_add(1); updateSacredTargets(); continue;
+                }
                 if (control == 0)
                 {
                     pendingShimmer.store(static_cast<float>(value) / 127);
@@ -227,7 +260,8 @@ void DroneProcessor::processBlock(juce::AudioBuffer<float>& audio, juce::MidiBuf
                 lastControlValue.store(value); lastControlChannel.store(message.getChannel());
                 lastControlCC.store(cc);
                 lastControl.store(control); controlHits.fetch_add(1);
-                engine.setTargets(effectiveValues()); updateEffectTargets(); equalizer.setTargets(effectiveEQ());
+                engine.setTargets(effectiveValues());
+                engine.setPitchCents(currentDetune()); updateEffectTargets(); equalizer.setTargets(effectiveEQ());
                 continue;
             }
             if (cc == 64 || cc == 120 || cc == 123)
@@ -258,9 +292,65 @@ void DroneProcessor::processBlock(juce::AudioBuffer<float>& audio, juce::MidiBuf
     midi.clear();
     peak.store(blockPeak); voices.store(engine.activeVoices());
     for (size_t n = 0; n < notes.size(); ++n) notes[n].store(engine.sounding(static_cast<int>(n)));
+    const auto levels=engine.envelopeLevels();
+    for(size_t n=0;n<levels.size();++n)noteLevels[n].store(levels[n],std::memory_order_relaxed);
+}
+juce::RangedAudioParameter* DroneProcessor::controlParameter(int control) const
+{
+    if(control==0)return shimmerParameter;
+    if(control<4)return parameterObjects[static_cast<size_t>(control)];
+    if(control<6)return effectObjects[static_cast<size_t>(control-4)];
+    if(control==6)return parameterObjects[4];
+    if(control<10)return eqObjects[static_cast<size_t>(control-7)];
+    return sacredParameters[static_cast<size_t>(control-10)];
+}
+bool DroneProcessor::waitForPickup(int control,int value)
+{
+    const size_t index=static_cast<size_t>(control);
+    const int previous=previousControl[index];previousControl[index]=value;
+    if(!pickupArmed[index].load())return false;
+    const float target=controlParameter(control)->getValue()*127;
+    const bool near=std::abs(static_cast<float>(value)-target)<=1.5f;
+    const bool crossed=previous>=0 && (previous-target)*(value-target)<=0;
+    if(near || crossed){pickupArmed[index].store(false);return false;}
+    return true;
+}
+void DroneProcessor::randomizeSound()
+{
+    // Only these controls use pickup. Master and expression are never touched.
+    for(size_t i=0;i<pickupArmed.size();++i)if(i!=6)pickupArmed[i].store(true);
+    pendingShimmer.store(-1);for(size_t i=1;i<4;++i)pending[i].store(-1);
+    for(auto& v:pendingEffects)v.store(-1);for(auto& v:pendingEQ)v.store(-1);
+    for(auto& v:pendingSacred)v.store(-1);for(auto& v:pendingWaves)v.store(-1);
+    constexpr std::array<const char*,13> ids {"shimmer","mix","attack","release","reverb","delay","harmony","madness","eqBass","eqMid","eqTreble","osc1Waveform","osc2Waveform"};
+    for(size_t i=0;i<ids.size();++i)
+    {
+        auto* parameter=parameters.getParameter(ids[i]);
+        float value=inspirationRandom.nextFloat();
+        if(i==2 || i==3)
+        {
+            if(i==3)value=std::sqrt(value);
+            const float seconds=inspirationRandom.nextFloat()<.2f ? .005f+29.995f*value
+                : std::exp(std::log(.005f)+value*std::log(6000.0f));
+            value=parameter->convertTo0to1(seconds);
+        }
+        else if(i>=8 && i<11)
+        {
+            // Mostly centred EQ, with occasional full-range extremes.
+            if(inspirationRandom.nextFloat()<.8f)value=.5f*(value+inspirationRandom.nextFloat());
+        }
+        else if(i>=11)value=parameter->convertTo0to1(static_cast<float>(inspirationRandom.nextInt(4)));
+        parameter->beginChangeGesture();parameter->setValueNotifyingHost(value);parameter->endChangeGesture();
+    }
 }
 void DroneProcessor::flushMidiParameters()
 {
+    for(size_t i=0;i<2;++i)
+    {
+        auto value=pendingSacred[i].load(); if(value<0) continue;
+        auto* p=sacredParameters[i]; p->beginChangeGesture(); p->setValueNotifyingHost(value); p->endChangeGesture();
+        pendingSacred[i].compare_exchange_strong(value,-1.0f);
+    }
     auto shimmer = pendingShimmer.load();
     if (shimmer >= 0)
     {
@@ -345,7 +435,10 @@ void DroneProcessor::getStateInformation(juce::MemoryBlock& dest)
     // copyState is deliberately outside processBlock. Include the latest CC even if
     // the message-thread timer has not run yet. Never call host callbacks here.
     auto state = parameters.copyState();
-    state.setProperty("schemaVersion", 7, nullptr);
+    state.setProperty("schemaVersion", 8, nullptr);
+    for(size_t i=0;i<2;++i)
+        if(const float value=pendingSacred[i].load(); value>=0)
+            state.getChildWithProperty("id",i==0 ? "harmony" : "madness").setProperty("value",value,nullptr);
     if (const float shimmer = pendingShimmer.load(); shimmer >= 0)
         state.getChildWithProperty("id", "shimmer").setProperty("value", shimmer, nullptr);
     state.setProperty("detuneSource", detuneSource.load(), nullptr);
@@ -386,15 +479,17 @@ void DroneProcessor::setStateInformation(const void* data, int size)
             for (auto& p : pendingEQ) p.store(-1);
             cancelMouseThrough.store(mouseInput.watermark()); cancelMouseRequested.store(true); mouseEpoch.fetch_add(1);
             pendingShimmer.store(-1);
+            for(auto& armed:pickupArmed)armed.store(false);
+            for(auto& value:pendingSacred) value.store(-1);
             pitchActive.store(false); pitchValue.store(8192); modulation.store(0);
             pendingPadMode.store(-1); padRouter.cancelLearning();
             auto state = juce::ValueTree::fromXml(*xml);
             // Old 0.1/0.2 states have five parameters. Missing new parameters
             // migrate to Sine + Sine and the default MiniLab mapping, not the
             // previous state of whichever instance is being reused.
-            constexpr std::array<const char*, 14> newIds {
-                "osc1Waveform", "osc2Waveform", "padChannel", "padFirstNote", "padFirstCC", "padInput", "reverb", "delay", "eqBass", "eqMid", "eqTreble", "pitchDetune", "shimmer", "polyphony" };
-            constexpr std::array<float, 14> defaults { 0, 0, 0, 36, 102, 2, 0, 0, 0, 0, 0, 0, 0, 8 };
+            constexpr std::array<const char*, 16> newIds {
+                "osc1Waveform", "osc2Waveform", "padChannel", "padFirstNote", "padFirstCC", "padInput", "reverb", "delay", "eqBass", "eqMid", "eqTreble", "pitchDetune", "shimmer", "polyphony", "harmony", "madness" };
+            constexpr std::array<float, 16> defaults { 0, 0, 0, 36, 102, 2, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0 };
             for (size_t i = 0; i < newIds.size(); ++i)
                 if (!state.getChildWithProperty("id", newIds[i]).isValid())
                 {

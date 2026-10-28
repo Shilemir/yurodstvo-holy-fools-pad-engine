@@ -45,7 +45,7 @@ inline void runWheelEQTests()
     legacy.getChildWithProperty("id", "detune").setProperty("value", 25, nullptr);
     auto xml = legacy.createXml(); juce::MemoryBlock old; juce::AudioProcessor::copyXmlToBinary(*xml, old);
     restored.setStateInformation(old.getData(), static_cast<int>(old.getSize()));
-    waveCheck(restored.currentDetune() == 25, "Old saved Detune values migrate without doubling or discarding their cents");
+    waveCheck(restored.currentDetune() == 0 && restored.parameters.getRawParameterValue("detune")->load() == 25, "Old saved Detune values migrate without doubling or discarding their cents");
     waveCheck(restored.parameters.getRawParameterValue("eqBass")->load() == 0
         && restored.parameters.getRawParameterValue("eqMid")->load() == 0 && restored.parameters.getRawParameterValue("eqTreble")->load() == 0,
         "Loading an old state into a reused instance resets all missing EQ bands to neutral");
@@ -53,8 +53,8 @@ inline void runWheelEQTests()
     waveCheck(restored.currentDetune() == 0, "Even a legacy preset returns to zero on a physical centre message");
     restored.getStateInformation(saved); DroneProcessor oldAgain;
     oldAgain.setStateInformation(saved.getData(), static_cast<int>(saved.getSize()));
-    waveCheck(oldAgain.currentDetune() == 25, "Transient wheel centring does not overwrite the legacy preset base");
-    setPlain(p, "attack", 0.005f); setPlain(p, "mix", 1); setPlain(p, "master", 1); setPlain(p, "pitchDetune", 0);
+    waveCheck(oldAgain.currentDetune() == 0 && oldAgain.parameters.getRawParameterValue("detune")->load() == 25, "Transient wheel centring does not overwrite the legacy preset base");
+    setPlain(p, "detune", 0); setPlain(p, "attack", 0.005f); setPlain(p, "mix", 1); setPlain(p, "master", 1); setPlain(p, "pitchDetune", 0);
     p.prepareToPlay(48000, 256); send(juce::MidiMessage::noteOn(1, 69, 1.0f));
     auto advance = [&](int blocks) { for (int i = 0; i < blocks; ++i) { juce::MidiBuffer m; p.processBlock(audio, m); } };
     auto crossings = [&]
@@ -74,7 +74,7 @@ inline void runWheelEQTests()
     send(juce::MidiMessage::pitchWheel(1, 0)); advance(40);
     waveCheck(std::abs(crossings() - 415) <= 1, "Pitch -100 changes oscillator II to about 415 Hz");
     setPlain(p, "mix", 0); send(juce::MidiMessage::pitchWheel(1, 16383)); advance(40);
-    waveCheck(std::abs(crossings() - 440) <= 1, "Pitch Wheel does not globally bend oscillator I");
+    waveCheck(std::abs(crossings() - 466) <= 1, "Pitch Wheel also bends held oscillator I by +100 cents");
     for (double sr : { 44100.0, 48000.0, 96000.0 })
     {
         ThreeBandEQ flat; flat.prepare(sr);

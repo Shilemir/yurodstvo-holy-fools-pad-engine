@@ -15,6 +15,9 @@ void DroneEngine::prepare(double sampleRate, bool externalOutputStage)
     waveTargets = { 0, 0 }; waveRemaining = { 0, 0 };
     waveWeights = { { { 1, 0, 0, 0 }, { 1, 0, 0, 0 } } };
     sr = sampleRate > 0 ? sampleRate : 48000;
+    pitch.reset(sr, 0.025); pitch.setCurrentAndTargetValue(0);
+    for (auto* macro : { &harmonyAmount, &madnessAmount })
+    { macro->reset(sr, .08); macro->setCurrentAndTargetValue(0); }
     voices = {}; tails = {}; pedals = {}; clock = 0; nextTail = 0; polyphony = voiceCount;
     constexpr std::array<float, parameterCount> defaults { 7, 0.5f, 4, 8, 0.65f };
     for (size_t i = 0; i < controls.size(); ++i)
@@ -49,33 +52,71 @@ void DroneEngine::setPolyphony(int limit)
     for (size_t i = static_cast<size_t>(limit); i < voices.size(); ++i)
         if (voices[i].note >= 0 && !voices[i].tail) voices[i].stop(true);
 }
+void DroneEngine::setSacredTargets(float harmony, float madness)
+{
+    harmonyAmount.setTargetValue(juce::jlimit(0.0f,1.0f,harmony));
+    madnessAmount.setTargetValue(juce::jlimit(0.0f,1.0f,madness));
+}
 void DroneEngine::Voice::stop(bool quick)
 {
     held = false; releasing = true; releaseStart = envelope;
+    bellReleaseStart=bellGate;
     tail = quick;
 }
-float DroneEngine::Voice::sample(double sampleRate, float ratio, float mix, float attack, float release,
+std::array<float,2> DroneEngine::Voice::sample(double sampleRate, float bend, float ratio, float mix, float attack, float release,
+    float harmony, float madness,
     const WaveTables& tables, const std::array<std::array<float, 4>, 2>& weights)
 {
-    if (note < 0) return 0;
+    if (note < 0) return {};
     if (releasing)
         envelope = juce::jmax(0.0f, envelope - releaseStart / (static_cast<float>(sampleRate) * (tail ? 0.01f : release)));
     else
         envelope = juce::jmin(1.0f, envelope + 1.0f / (static_cast<float>(sampleRate) * attack));
-    if (releasing && envelope <= 0) { note = -1; return 0; }
-    const double dt1 = juce::jlimit(0.00000001, 0.49, frequency / sampleRate);
-    const double dt2 = juce::jlimit(0.00000001, 0.49, frequency * ratio / sampleRate);
+    if(releasing)
+        bellGate=juce::jmax(0.0f,bellGate-bellReleaseStart/static_cast<float>(sampleRate*(tail?.01:juce::jlimit(4.0f,12.0f,release+4))));
+    else if(harmony>0) bellGate=juce::jmin(1.0f,bellGate+static_cast<float>(1/(sampleRate*.02)));
+    if (releasing && envelope <= 0 && bellGate<=0) { note = -1; return {}; }
+    std::array<float,5> modulation {};
+    if (madness > 0) for(size_t i=0; i<drift.size(); ++i) modulation[i]=drift[i].next(sampleRate);
+    const double drift1 = madness > 0 ? std::exp2(madness*12*modulation[0]/1200.0) : 1;
+    const double drift2 = madness > 0 ? std::exp2(madness*12*modulation[1]/1200.0) : 1;
+    const double dt1 = juce::jlimit(0.00000001, 0.49, frequency * bend * drift1 / sampleRate);
+    const double dt2 = juce::jlimit(0.00000001, 0.49, frequency * bend * ratio * drift2 / sampleRate);
     float osc1 = 0, osc2 = 0;
     for (size_t shape = 0; shape < 4; ++shape)
     {
         if (weights[0][shape] > 0) osc1 += weights[0][shape] * tables.sample(static_cast<int>(shape), phase1, dt1);
         if (weights[1][shape] > 0) osc2 += weights[1][shape] * tables.sample(static_cast<int>(shape), phase2, dt2);
     }
-    const float out = ((1.0f - mix) * osc1 + mix * osc2) * envelope * velocity;
+    float voiceSignal = (1.0f - mix) * osc1 + mix * osc2;
+    if (madness > 0)
+    {
+        // Band-limited waveform enrichment avoids a nonlinear waveshaper's aliasing.
+        const float colour = tables.sample(2,phase1,dt1);
+        const float amount = .12f*madness*(.5f+.5f*modulation[3]);
+        voiceSignal += amount*(colour-voiceSignal);
+    }
+    float bellSignal=0;
+    if (harmony > 0)
+    {
+        resonanceActive=true;
+        if(!releasing && --bellCountdown<=0)
+        {
+            bells.strike(.65f+.175f*(bellRandom.random()+1),bellRandom.random(),sampleRate);
+            bellCountdown=static_cast<int>(sampleRate*(3+3*(bellRandom.random()+1)));++bellEvents;
+        }
+        bellSignal=3.5f*harmony*bells.process(0,frequency*bend*drift1,sampleRate,harmony)*bellGate;
+        const float excitation=voiceSignal + .35f*tables.sample(2,phase1,dt1);
+        voiceSignal += 3.5f*harmony*resonance.process(excitation,frequency*bend*drift1,sampleRate,harmony);
+    }
+    else if(resonanceActive) { resonance.reset(); bells.reset(false);bellCountdown=0;bellGate=0;resonanceActive=false; }
+    const float out = (voiceSignal * envelope + bellSignal) * velocity * (1 + .15f*madness*modulation[2]);
     phase1 += dt1; phase2 += dt2;
     if (phase1 >= 1) phase1 -= 1;
     if (phase2 >= 1) phase2 -= 1;
-    return out;
+    if (madness == 0) return {out,out};
+    const float pan=.30f*madness*modulation[4];
+    return {out*std::sqrt(1-pan),out*std::sqrt(1+pan)};
 }
 void DroneEngine::noteOn(int channel, int note, float velocity, int source)
 {
@@ -108,6 +149,10 @@ void DroneEngine::noteOn(int channel, int note, float velocity, int source)
     chosen->velocity = juce::jlimit(0.0f, 1.0f, velocity);
     chosen->frequency = juce::MidiMessage::getMidiNoteInHertz(note);
     chosen->age = ++clock;
+    chosen->resonance.reset();
+    chosen->bells.reset(false);chosen->bellRandom.seed=static_cast<uint32_t>(clock*277803737u+note*747796405u)|1u;
+    for(size_t i=0; i<chosen->drift.size(); ++i)
+        chosen->drift[i].reset(static_cast<uint32_t>(clock*747796405u + static_cast<uint64_t>(note)*2891336453u + i*277803737u),sr);
 }
 void DroneEngine::noteOff(int channel, int note, int source)
 {
@@ -133,6 +178,10 @@ void DroneEngine::allNotesOff(int channel, bool fast)
 }
 float DroneEngine::nextSample()
 {
+    const auto stereo=nextStereoSample(); return .5f*(stereo[0]+stereo[1]);
+}
+std::array<float,2> DroneEngine::nextStereoSample()
+{
     for (size_t osc = 0; osc < 2; ++osc)
         if (waveRemaining[osc] > 0)
         {
@@ -141,18 +190,30 @@ float DroneEngine::nextSample()
                                         / static_cast<float>(waveRemaining[osc]);
             --waveRemaining[osc];
         }
+    const auto bend = std::exp2(pitch.getNextValue() / 1200.0f);
     const auto ratio = std::exp2(controls[0].getNextValue() / 1200.0f);
     const auto mix = controls[1].getNextValue();
     const auto attack = juce::jmax(0.005f, controls[2].getNextValue());
     const auto release = juce::jmax(0.005f, controls[3].getNextValue());
     const auto gain = controls[4].getNextValue();
-    float sum = 0;
-    for (auto& v : voices) sum += v.sample(sr, ratio, mix, attack, release, *waveTables, waveWeights);
-    for (auto& v : tails) sum += v.sample(sr, ratio, mix, attack, release, *waveTables, waveWeights);
+    const float harmony=harmonyAmount.getNextValue();
+    // Fixed depth equals 0.9.0 with Hesitation settled at 127. E8 is smoothed once.
+    const float madness=2.0f*madnessAmount.getNextValue();
+    std::array<float,2> sum {};
+    auto render = [&](auto& bank) { for(auto& v:bank)
+    {
+        const auto sample=v.sample(sr,bend,ratio,mix,attack,release,harmony,madness,*waveTables,waveWeights);
+        sum[0]+=sample[0]; sum[1]+=sample[1];
+    } };
+    render(voices); render(tails);
     // Fixed per-voice gain: changing the polyphony limit never ducks existing notes.
     // The reference divisor remains eight, independent of the maximum voice count.
-    const float signal = sum * (0.8f / (2.0f * voiceCount)) * outputBoost;
-    return externalOutput ? signal : protectOutput(signal * gain);
+    for(auto& channel:sum)
+    {
+        const float signal=channel*(0.8f/(2.0f*voiceCount))*outputBoost;
+        channel=externalOutput ? signal : protectOutput(signal*gain);
+    }
+    return sum;
 }
 int DroneEngine::activeVoices() const
 {
@@ -164,5 +225,16 @@ bool DroneEngine::sounding(int note) const
 {
     for (const auto& v : voices) if (v.note == note) return true;
     return false;
+}
+std::array<float,128> DroneEngine::envelopeLevels() const
+{
+    std::array<float,128> levels {};
+    auto collect=[&](const auto& bank){for(const auto& v:bank)if(v.note>=0)
+        levels[static_cast<size_t>(v.note)]=juce::jmax(levels[static_cast<size_t>(v.note)],v.envelope);};
+    collect(voices);collect(tails);return levels;
+}
+uint64_t DroneEngine::harmonyEvents() const
+{
+    uint64_t total=0;for(const auto& v:voices)total+=v.bellEvents;for(const auto& v:tails)total+=v.bellEvents;return total;
 }
 }

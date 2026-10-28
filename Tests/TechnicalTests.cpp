@@ -12,6 +12,10 @@
 #include "WheelEQTests.h"
 #include "ShimmerPolyTests.h"
 #include "KeyboardTests.h"
+#include "DSPRefinementTests.h"
+#include "SacredTests.h"
+#include "FaithTests.h"
+#include "InspirationTests.h"
 
 namespace
 {
@@ -38,7 +42,7 @@ int main(int argc, char** argv)
         runWheelEQTests();
         runKeyboardTests();
         const auto root = argc > 1 ? juce::File(juce::String(argv[1])) : juce::File::getCurrentWorkingDirectory().getChildFile("artifacts");
-        root.createDirectory(); runShimmerPolyTests(root);
+        root.createDirectory(); runDSPRefinementTests(root); runShimmerPolyTests(root); runSacredTests(root); runInspirationTests(root);
         yuro::DroneEngine engine;
         engine.prepare(48000);
         engine.setTargets({ 0, 0, 0.005f, 0.1f, 1 });
@@ -172,7 +176,7 @@ int main(int argc, char** argv)
             if (child->getName() == "Pitch Wheel") pitchWheel = dynamic_cast<juce::Slider*>(child);
         }
         check(detuneKnob != nullptr && detuneKnob->isEnabled(), "E1 Shimmer is active in GUI");
-        check(pitchWheel != nullptr && std::abs(pitchWheel->getValue() - 50) < 0.01, "Legacy saved detune is reflected by the wheel until a new gesture");
+        check(pitchWheel != nullptr && std::abs(pitchWheel->getValue()) < 0.01, "Global wheel stays centred independently of saved relative oscillator detune");
         pitchWheel->setValue(12.0, juce::sendNotificationSync);
         check(std::abs(processor.parameters.getRawParameterValue("pitchDetune")->load() - 12) < 0.01f, "Mouse wheel controls the new +/-100 cent automation parameter");
         pitchWheel->onDragEnd();
@@ -320,6 +324,8 @@ int main(int argc, char** argv)
                 if (parameter->getName(80) == "Oscillator Mix" || parameter->getName(80) == "Master Volume") parameter->setValueNotifyingHost(1);
                 if (parameter->getName(80) == "Attack") parameter->setValueNotifyingHost(0);
             }
+            for (auto* parameter : pitchInstance->getParameters())
+                if (parameter->getName(80) == "Oscillator Detune") parameter->setValueNotifyingHost(0.5f);
             pitchInstance->prepareToPlay(48000, 512);
             auto hostFrequency = [&](int bend, bool start)
             {
@@ -345,6 +351,8 @@ int main(int argc, char** argv)
                 "Actual VST3 wrapper forwards 14-bit Pitch Bend and centre to a held oscillator II");
             pitchInstance->releaseResources();
         }
+        if (argc > 2) compareSacredBypass(root,juce::String(argv[2]));
+        if (argc > 2) runFaithTests(root,juce::String(argv[2]));
         if (argc > 3) compareNominalVSTLevels(root, juce::String(argv[2]), juce::String(argv[3]));
         std::cout << "All checks passed. Peak=" << maximum << " max delta=" << maxDelta
                   << " gain increase=" << gainIncreaseDb << " dB" << std::endl;

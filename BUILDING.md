@@ -1,4 +1,4 @@
-# Building YURODSTVO 0.8.0
+# Building YURODSTVO 0.10.1
 
 ## Windows x64 toolchain
 
@@ -39,7 +39,7 @@ external ASIO drivers/SDKs and AAX are outside this build.
 
 ## Offline Corresponding Source
 
-Download `YURODSTVO-Holy-Fools-Pad-Engine-v0.8.0-AGPL-Corresponding-Source.zip`
+Download `YURODSTVO-Holy-Fools-Pad-Engine-v0.10.1-Corresponding-Source.zip`
 and its SHA-256 sidecar from the same release as the binaries. Extract it and
 run the same commands above from the project root. The archive includes the
 exact official JUCE source at `dependencies/JUCE`, automatically discovered by

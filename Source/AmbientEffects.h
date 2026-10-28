@@ -5,6 +5,7 @@
 #include <vector>
 #include "OutputStage.h"
 #include "Shimmer.h"
+#include "CathedralReverb.h"
 
 class AmbientEffects
 {
@@ -18,7 +19,7 @@ public:
     bool isPanicFading() const noexcept { return clearing; }
 private:
     void clear();
-    juce::Reverb reverb;
+    CathedralReverb reverb;
     Shimmer shimmer;
     std::array<std::vector<float>, 2> delayLines;
     std::array<int, 2> delaySamples {};

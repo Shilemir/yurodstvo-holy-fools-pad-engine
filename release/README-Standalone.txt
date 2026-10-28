@@ -10,10 +10,10 @@ START
    controller. No DAW or Arturia controller is required for mouse playback.
 
 CONTROLS
-E1 Shimmer / E2 Oscillator Mix / E3 Attack / E4 Release / E5 Reverb / E6 Delay.
-E7-E8 Reserved. F1 Master / F2 Bass / F3 Mid / F4 Treble (EQ +/-12dB).
+E1 DEVOTION (Shimmer), E2 DUALISM (Mix), E3 PATIENCE (Attack), E4 REMEMBRANCE (Release), E5 SANCTUARY (Reverb), E6 SOLITUDE (Delay).
+E7 HARMONY (Modal Resonance), E8 MADNESS (Organic Instability). F1 MASTER / F2 HELL / F3 EARTH / F4 HEAVEN (EQ +/-12dB).
 P1-P4 select Sine/Triangle/Sawtooth/Square for oscillatorI; P5-P8 for oscillatorII.
-Pitch Bend controls oscillatorII detune +/-100cents; ModCC1 is visual/reserved.
+DOUBT (Pitch Bend): global +/-100 cents for both oscillators; relative detune is preserved. FAITH (CC1) is visual only.
 Polyphony1-16, default8. Left-click and hold a key, drag to change notes, release
 to start the envelope's Release. Leaving/hiding the keyboard or losing focus
 releases its mouse note; physical MIDI ownership is independent. PANIC / SILENCE
@@ -39,7 +39,9 @@ to the licence. Include Corresponding Source and notices when conveying binaries
 mark your modifications. Modified remote network versions have section 13 source
 offer obligations. See LICENSES/LICENSE.txt and LICENSES/THIRD_PARTY.md.
 Complete source with JUCE 9.0.4 is available at no charge from the same release:
-https://github.com/Shilemir/yurodstvo-holy-fools-pad-engine/releases/tag/v0.8.0-agpl
+https://github.com/Shilemir/yurodstvo-holy-fools-pad-engine/releases/tag/v0.10.1
 See SOURCE-CODE.txt and the Corresponding-Source.zip asset for offline building.
 The unmodified font stays OFL-1.1. Only the official AI PNG is dedicated under
 CC0-1.0, to the extent of the owner's rights; see LICENSES/ILLUSTRATION-NOTICE.txt.
+
+PRAY FOR INSPIRATION randomizes E1-E8, EQ and both waveforms. Master, expression and polyphony are unchanged. After a prayer move each knob/EQ fader through its displayed value to pick it up. Harmony has recurring bell strikes independent of Attack; keyboard glow follows the main voice envelope.

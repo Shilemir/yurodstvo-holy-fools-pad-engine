@@ -7,6 +7,9 @@
 class DroneLookAndFeel final : public juce::LookAndFeel_V4
 {
 public:
+    DroneLookAndFeel();
+    void drawButtonBackground(juce::Graphics&, juce::Button&, const juce::Colour&, bool, bool) override;
+    void drawButtonText(juce::Graphics&, juce::TextButton&, bool, bool) override;
     juce::Font getTextButtonFont(juce::TextButton&, int) override;
     juce::Font getLabelFont(juce::Label&) override;
     void drawRotarySlider(juce::Graphics&, int, int, int, int, float, float, float, juce::Slider&) override;
@@ -16,6 +19,7 @@ class WavePad final : public juce::Button
 {
 public:
     explicit WavePad(int number);
+    static juce::Path waveformPath(int shape,juce::Rectangle<float> area);
     void paintButton(juce::Graphics&, bool highlighted, bool down) override;
 private:
     int padNumber;
@@ -71,8 +75,10 @@ private:
     juce::Slider pitchWheel, modWheel;
     juce::Slider polyphony;
     bool pitchDragging = false;
-    std::array<std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>, 12> attachments;
+    std::array<std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>, 13> attachments;
     juce::TextButton panic { "PANIC / SILENCE" };
+    juce::TextButton inspiration { "PRAY FOR INSPIRATION" };
+    int inspirationFlash=0;
     juce::TooltipWindow tooltips { this, 650 };
     float meter = 0;
     void timerCallback() override;

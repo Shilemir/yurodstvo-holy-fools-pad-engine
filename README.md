@@ -3,22 +3,22 @@
 An experimental synthesizer for ambient music, drones and slowly evolving sound
 textures, inspired by Orthodox iconography and the tradition of holy foolishness.
 Open-source software under **GNU AGPL v3.0 only (AGPL-3.0-only)**.
-Current application version: **0.8.0**; open-source distribution: **v0.8.0-agpl**.
+Current application version: **0.10.1** — experimental Windows x64 prerelease.
 
 ![YURODSTVO interface](docs/images/interface.png)
 
-The screenshot is rendered from the real JUCE editor with demonstration values.
+The screenshot is rendered from the real 0.10.0 development editor with demonstration values. The 0.10.1 release keeps the same interface and updates its version label.
 
 ## Download
 
-Open this repository's **Releases** section and choose the **v0.8.0-agpl prerelease**.
+Open this repository's **Releases** section and choose the [**v0.10.1 prerelease**](https://github.com/Shilemir/yurodstvo-holy-fools-pad-engine/releases/tag/v0.10.1).
 Download the Windows-VST3 or Windows-Standalone ZIP under **Assets**.
 GitHub's automatic Source code archives are not ready-to-run binaries.
 End users do not need JUCE, Visual Studio, CMake or compilation.
 
 ## Installation — VST3
 
-1. Download `YURODSTVO-Holy-Fools-Pad-Engine-v0.8.0-Windows-VST3.zip`.
+1. Download `YURODSTVO-Holy-Fools-Pad-Engine-v0.10.1-Windows-VST3.zip`.
 2. Extract the complete archive and close your DAW.
 3. Copy the entire `YURODSTVO - Holy Fool's Pad Engine.vst3` folder into
    `C:\Program Files\Common Files\VST3`. Keep all nested Contents folders intact.
@@ -32,7 +32,7 @@ stable across upgrades. Back up DAW projects before upgrading.
 
 ## Installation — Standalone
 
-1. Download `YURODSTVO-Holy-Fools-Pad-Engine-v0.8.0-Windows-Standalone.zip`.
+1. Download `YURODSTVO-Holy-Fools-Pad-Engine-v0.10.1-Windows-Standalone.zip`.
 2. Extract everything and run `YURODSTVO - Holy Fool's Pad Engine.exe`.
 3. If needed, use Options / Audio-MIDI Settings to select your audio output and
    MIDI input. No MIDI controller is required for the on-screen mouse keyboard.
@@ -46,27 +46,35 @@ stable across upgrades. Back up DAW projects before upgrading.
 - Attack and Release up to 30seconds, smooth parameter changes and voice stealing.
 - Three-band EQ before effects: Bass 120Hz shelf, Mid 1kHz bell, Treble 6kHz shelf,
   each −12 to +12 dB, neutral at 0 dB.
-- Global octave Shimmer, stereo Reverb and Delay, plus final peak protection.
+- Global octave Shimmer, long stereo Cathedral Reverb and Deep Ambient Delay, plus final peak protection.
 - Mouse-playable C2–C4 keyboard, waveform pads and MiniLab 3-inspired controls.
+- Per-voice note-tracking modal HARMONY and smooth organic MADNESS, at fixed full expression depth.
+- PRAY FOR INSPIRATION randomizes eight macros, EQ and both waveforms while preserving Master and expression.
+- Recurring note-tracking bell strikes and real-envelope keyboard Release Glow.
 - Host parameter automation and plugin-state storage.
 - Embedded official AI illustration and Ruslan Display font; no external assets
   need to be installed next to the binaries.
+
+See [Sacred modules and listening guide](SACRED-MODULES.md) for the new DSP, technical tooltips and compatibility details. Existing host automation names remain technical for compatibility; the editor uses the new artistic names.
+
+See [Inspiration and recurring Harmony](INSPIRATION.md) for randomization, hardware pickup and Release Glow.
 
 ## Basic controls
 
 | Control | Function | User CC | DAW CC |
 |---|---|---:|---:|
-| E1 | Shimmer amount |74|86|
-| E2 | Oscillator Mix |71|87|
-| E3 | Attack |76|89|
-| E4 | Release |77|90|
-| E5 | Reverb |93|110|
-| E6 | Delay |18|111|
-| E7/E8 | Reserved/inactive |—|—|
-| F1 | Master Volume |82|14|
-| F2 | Bass |83|15|
-| F3 | Mid |85|30|
-| F4 | Treble |17|31|
+| E1 | DEVOTION / Octave Shimmer |74|86|
+| E2 | DUALISM / Oscillator Mix |71|87|
+| E3 | PATIENCE / Attack |76|89|
+| E4 | REMEMBRANCE / Release |77|90|
+| E5 | SANCTUARY / Cathedral Reverb |93|110|
+| E6 | SOLITUDE / Deep Ambient Delay |18|111|
+| E7 | HARMONY / Sacred Resonance |19|116|
+| E8 | MADNESS / Controlled Instability |16|117|
+| F1 | MASTER / Volume |82|14|
+| F2 | HELL / Bass |83|15|
+| F3 | EARTH / Mid |85|30|
+| F4 | HEAVEN / Treble |17|31|
 
 Both absolute 0–127 MiniLab 3 maps are accepted on any MIDI channel. The DAW must
 forward notes, CC and Pitch Bend to the instrument; control-surface/Remote routing
@@ -76,11 +84,10 @@ P1–P4 select Sine/Triangle/Sawtooth/Square for oscillator I; P5–P8 do the sa
 Default pad routing accepts notes 36–43 or CC102–109 on any channel. Pad releases
 keep the selection. Old saved custom pad mappings remain supported internally.
 
-Pitch Bend controls **oscillator II detune**,−100 to+100cents, centre 0; it is not a
-global bend of both oscillators. Its physical gesture is temporary; record MIDI
+Pitch Bend controls **both oscillators globally**, -100 to +100 cents, centre 0, preserving their relative detune. Its physical gesture is temporary; record MIDI
 Pitch Bend in the DAW to replay it. The separate Pitch Detune parameter supports
 host automation. Legacy Detune automation retains its former range for old sets.
-ModulationCC1 displays 0–127 but has no sound destination yet.
+FAITH (CC1) displays the Mod Wheel position and has no audio effect. MADNESS always uses the full expression depth of 0.9.0 with Hesitation = 127. DOUBT is the global pitch wheel.
 
 Click and hold a key with the left mouse button, drag between keys, then release.
 Leaving the keyboard, losing focus or closing the editor releases the mouse note.
@@ -109,7 +116,7 @@ introduce a soft granular/chorused texture.
 
 The public repository begins with a reviewed 0.8.0 snapshot. The owner retains the
 complete, unmodified development history locally; former external reference images
-and that history are not published here. No application DSP was changed for release.
+and that history are not published here. No additional DSP changes were made solely for 0.10.1 packaging; see CHANGELOG.md for the implemented changes since 0.8.0.
 
 Dependencies: CMake 3.22 or newer (new enough for your chosen generator), Git and
 Visual Studio C++ build tools with a Windows SDK. The tested toolchain is Visual

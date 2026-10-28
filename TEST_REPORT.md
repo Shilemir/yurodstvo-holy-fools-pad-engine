@@ -1,3 +1,184 @@
+# Public release validation — 0.10.1
+
+The new clean-build and extracted-plugin results are recorded in the published
+[v0.10.1 release notes](https://github.com/Shilemir/yurodstvo-holy-fools-pad-engine/releases/tag/v0.10.1).
+See release/VALIDATION.md for scope. The sections below record earlier development
+runs; their counts and timings must not be read as measurements of a new build.
+
+---
+
+# Inspiration / recurring Harmony / Release Glow validation — 0.10.0
+
+Validated on 2026-10-28 with JUCE 9.0.4 and the installed MSVC toolchain.
+Windows x64 Release Standalone, VST3 and test targets built successfully.
+CTest: **569 checks passed**, zero failures; test duration 33.94 seconds.
+
+- 128 prayers produced distinct configurations with all 13 values inside their
+  existing ranges. Both waveform selectors explored all four choices and matching
+  pairs. Master, Doubt, Faith, polyphony, legacy detune and routing stayed unchanged.
+  Generated values round-tripped through the real processor state.
+- GUI prayer activation updates all eight attached knobs, EQ faders and active
+  waveform pads, and flashes the single header button. Pickup prevents a distant
+  physical CC value from jumping a randomized parameter; crossing it restores
+  direct absolute control. Master is excluded from pickup.
+- At 44.1/48/96 kHz, Harmony remained measurable with Attack=30 seconds. Sample
+  counters produced at least three events over 25 seconds with measured intervals
+  inside 3-9 seconds. Note Off stops events; a holding sustain pedal keeps the
+  scheduler active until pedal release. Resonance tails then retire without
+  hanging voices. A separate signal test verifies that a later shaped strike
+  re-excites the actual resonator bank rather than merely incrementing a counter.
+- Envelope measurements at Release=0.5/5/30 seconds verify approximately half
+  intensity at half Release and zero after completion. Multiple MIDI/mouse owners
+  of one pitch and retiring voices contribute to the maximum per-note envelope.
+  The processor's published atomic levels also follow those measured values.
+- Actual editor and keyboard snapshots were rendered and visually inspected:
+  prayer button fits the original header; full/half/finished glow stages use the
+  existing warm palette. The window remains 1200 x 780; artwork/font are unchanged.
+- Sixteen voices, maximum modules, boosted EQ and moving controllers: 2881.96 ms
+  processing per 25600 ms audio (11.26 percent), worst 256-sample block 1.301 ms
+  at 48 kHz; output peak 0.94. Thirty prayers over sixteen held notes: 1766.56 ms
+  per 16000 ms audio (11.04 percent), peak 0.937228, Master unchanged. These are
+  individual offline runs, not DAW CPU or subjective artifact guarantees.
+- Existing MIDI/pad/FAITH/pitch/EQ/FX/state regression checks pass. VST3 parameter
+  IDs remain compatible. Old Madness reference comparisons intentionally disable
+  Harmony because its recurring layer is the deliberate DSP change here.
+
+Local results: `artifacts/0.10.0/TechnicalTests.log`, `Inspiration-stress.txt`,
+`Release-glow-states.png` and `YURODSTVO-interface.png`.
+No physical MiniLab test, Ableton interaction/listening or another-PC testing was
+performed. State tests use processor serialization and an offline VST3 host;
+verify recall in your own Ableton set. Existing signal smoothers, crossfades and
+peak protection remain in use; listening tests are still needed for subjective
+assessment. See INSPIRATION.md for practical controller and listening steps.
+
+---
+
+# Absolute Madness / Faith validation — 0.9.1
+
+Validated on 2026-10-28 with JUCE 9.0.4 and the installed MSVC toolchain.
+Windows x64 Release Standalone, VST3 and test targets built successfully.
+CTest: **527 checks passed**, zero failures; test duration 28.28 seconds.
+
+- Actual 0.9.0 and new VST3 binaries compared at E8 = 0 / 25 / 50 / 75 / 100
+  percent. Old CC1 was held at 127; the new FAITH received changing CC1 events.
+  Maximum sample difference was **0 at all five settings**, with sixteen notes,
+  Harmony, Shimmer, Reverb, Delay, global pitch gestures and Release. Expression
+  smoothing was settled in silence before notes began in the reference build.
+- Independent four-note processing tests confirm sample-exact equality while
+  simulated MIDI CC1 moves, and while the mouse FAITH strip moves. The indicator
+  still updates. No synth/FX parameter is written by CC1. No saved parameter was
+  removed: the previous Hesitation was only transient controller state.
+- The only audio change is the fixed multiplier 2 on the existing smoothed E8.
+  Drift/random interpolation, timbre, amplitude, stereo, Harmony, EQ and FX
+  algorithms are unchanged. Existing APVTS IDs and VST3 identity are retained;
+  existing state/automation regression tests pass. Older Madness presets now
+  deliberately use the old maximum expression depth regardless of old CC1.
+- Existing 16-voice maximum stress: 2495.92 ms processing per 25600 ms audio
+  (9.75 percent), worst 256-sample block 1.304 ms at 48 kHz; peak 0.94. This is
+  one offline test on this machine, not a DAW CPU guarantee. Long-note, Release,
+  Panic, EQ, FX, pad, pitch and mouse/MIDI ownership regressions pass.
+- Waveform rendering bug: an incorrect `i == 0 || i >= 6` condition restarted
+  the path after every point beyond index five. Replaced with complete vector
+  geometry for sine, triangle, saw and square. Tests verify one continuous path,
+  distinct shapes, full extents and contained bounds at 0.75 / 1 / 2 scales.
+  Oscillator sound-generation code was not changed.
+- Polyphony +/- callbacks still work. Normal, hover, pressed and disabled
+  button colours are distinct and warm; editor/popup selection colours also
+  use the panel palette. All four states were rendered and visually inspected.
+- The complete 1200 x 780 editor was rendered and visually inspected: clear
+  icons on P1-P8, unchanged selection highlighting, FAITH label, warm buttons,
+  unchanged official illustration, layout, typography and Cyrillic quote.
+
+Files: `artifacts/0.9.1/TechnicalTests.log`, `Sacred-stress.txt`,
+`YURODSTVO-interface.png` and `Polyphony-button-states.png`.
+No physical MiniLab testing, Ableton interaction/listening or another-PC testing
+was performed. MIDI tests send synthetic messages through the actual processor
+and VST3 wrapper. Check physical pads and controller routing in your existing DAW
+setup after replacing the complete plugin bundle and rescanning.
+
+---
+
+# Sacred modules validation — 0.9.0
+
+Validated on 2026-10-28 with JUCE 9.0.4 and the installed MSVC toolchain.
+Windows x64 Release Standalone, VST3 and technical-test targets built successfully.
+CTest: **499 checks passed**, zero failures; suite duration 18.98 seconds.
+
+- Real VST3 0.8.1 vs 0.9.0: every old hosted parameter ID and host display name
+  remains available. An actual old plugin state was loaded into the new VST3.
+  With the new modules at zero, a chord, pitch gestures, Release and all existing
+  effects rendered with maximum sample difference **0** in the measured sequence.
+- Default/zero bypass is also sample-exact at 44.1, 48 and 96 kHz, even with CC1
+  at maximum and Madness zero. Legacy states reset absent new parameters to zero.
+- Modal spectral peaks track two different base notes at all three sample rates,
+  including 2.01, 2.756 and 4.07 ratios. The actual sine-voice output acquires
+  measurable inharmonic energy when Harmony is enabled.
+- Organic trajectories are continuous, bounded and independently evolving over
+  fifteen seconds. A held note gains changing stereo output; Hesitation deepens
+  its variation without rewriting Madness. Global pitch retains its semitone
+  range under maximum Madness/Hesitation.
+- User/DAW E7/E8 CCs work in all four pad modes, including conflicting learned
+  pad maps. Pending values save before the host-notification timer flush.
+  Both new parameters work through mouse controls, automation and actual VST3
+  state round trips. Transient Hesitation resets on state load.
+- Sixteen voices, Harmony, Madness, all effects, +12 dB EQ, changing pads, Doubt
+  and Hesitation: 2419.053 ms processing per 25600 ms audio (9.45 percent), worst
+  256-sample block 1.388 ms at 48 kHz. This is one offline run on this machine,
+  not a DAW performance guarantee. Peak was bounded at 0.94. All notes completed
+  their two-second Release; Panic cleared voice modules and effect tails.
+- Macro zero/maximum changes during a held sine note had maximum sample delta
+  0.004558; this detects large discontinuities, not every subjective artifact.
+- Existing oscillator, pad, CC, mouse ownership, EQ, pitch, FX, polyphony,
+  nominal-gain and state regression tests remain passing.
+- The editor was rendered and visually inspected: new labels fit the unchanged
+  1200 x 780 panel, both new knobs are active, and the icon, quote, pads and
+  keyboard remain visible. Existing host names stay technical deliberately;
+  the artistic names and explanations are in the editor/tooltips.
+
+Local results: `artifacts/0.9.0/TechnicalTests.log`, `Sacred-stress.txt` and
+`YURODSTVO-interface.png`. See SACRED-MODULES.md for design and listening steps.
+No physical MiniLab test, Ableton listening/interaction or another-PC test was
+performed. The published GitHub release and old build directories are unchanged.
+
+---
+
+# DSP refinement validation — 0.8.1
+
+Validated on 2026-10-28 using the installed MSVC toolchain and JUCE 9.0.4.
+Windows x64 Release Standalone, VST3 and test targets built successfully.
+CTest passed: **454 checks**, zero failures (12.56 seconds for the suite).
+This local DSP iteration has not been uploaded to the published GitHub release.
+
+- Thirty-second impulse measurements at 44.1 / 48 / 96 kHz, for Reverb and
+  Delay macros 0 / 0.25 / 0.5 / 0.75 / 1.0. At zero, wet output is exactly zero;
+  first-sample dry gains match the documented mix. High settings produce
+  stronger wet returns; maximum tails/repeats still have measurable energy at
+  10–12 seconds, and the reverb has non-zero energy at 25–30 seconds.
+- Sixty seconds with all three maximum effects confirms finite output and
+  decay after excitation stops. At low levels, combined effects equal the sum
+  of independent returns within 1e-6: no return ducks another.
+- Isolated oscillators measured at low/centre/high MIDI Pitch Bend while
+  retaining 25 cents of relative detune; measured frequencies agree within
+  1.2 Hz with the expected values. Centre and 14-bit endpoint tests pass.
+- Regression checks cover pad/CC routing, EQ, host parameter state, temporary
+  wheel state, mouse note ownership, sustain, voice stealing, panic and GUI.
+  The real built VST3 is loaded by the offline host checks.
+- Sixteen voices + maximum effects + boosted EQ: 351.996 ms processing for
+  8000 ms audio (4.40 percent), worst 256-sample block 0.635 ms at 48 kHz.
+  This is one offline run on this machine, not a DAW performance guarantee.
+  Peak remained at or below the existing 0.94 output ceiling. Extreme settings
+  can intentionally engage the final soft protection knee.
+- Existing nominal-gain regression still passes. The output gain itself was
+  not increased in this iteration; legacy test labels still refer to 0.8.
+
+Artifacts: `artifacts/0.8.1/TechnicalTests.log` and
+`artifacts/0.8.1/Cathedral-delay-impulses.csv`.
+See `DSP-REFINEMENT.md` for design details and an Ableton listening checklist.
+No physical MiniLab test, Ableton interaction/audio listening test or another-PC
+compatibility test was performed during this iteration.
+
+---
+
 # Release validation — 0.8.0
 
 AGPL distribution validation, 2026-10-27. A fresh Windows x64 Release build was made with official JUCE 9.0.4 and Visual Studio

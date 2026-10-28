@@ -31,12 +31,12 @@ required. The MSVC runtime is statically linked; inspected imports require norma
 Windows libraries, not a separate VCRUNTIME/MSVCP DLL installation.
 
 BASIC CONTROLS
-E1 Shimmer / E2 Oscillator Mix / E3 Attack / E4 Release / E5 Reverb / E6 Delay.
-E7-E8 Reserved. F1 Master / F2 Bass / F3 Mid / F4 Treble (EQ +/-12dB).
+E1 DEVOTION (Shimmer), E2 DUALISM (Mix), E3 PATIENCE (Attack), E4 REMEMBRANCE (Release), E5 SANCTUARY (Reverb), E6 SOLITUDE (Delay).
+E7 HARMONY (Modal Resonance), E8 MADNESS (Organic Instability). F1 MASTER / F2 HELL / F3 EARTH / F4 HEAVEN (EQ +/-12dB).
 P1-P4: Sine, Triangle, Sawtooth, Square for oscillatorI.
 P5-P8: the same four waveforms for oscillatorII.
-Pitch Bend: oscillatorII detune +/-100cents, centre0; not global pitch bend.
-ModCC1: visual0-127, reserved, no audio destination.
+DOUBT (Pitch Bend): global +/-100 cents for both oscillators; relative detune is preserved. FAITH (CC1) is visual only.
+MADNESS uses the previous full-Hesitation depth; FAITH (Mod CC1) has no audio effect.
 Polyphony:1-16, default8. Mouse keyboard: left-click, hold, drag, release.
 Mouse and physical MIDI notes are tracked independently and share polyphony.
 Leaving the keyboard or losing focus releases its mouse note. Long Release can
@@ -51,7 +51,9 @@ to the licence. Include Corresponding Source and notices when conveying binaries
 mark your modifications. Modified remote network versions have section 13 source
 offer obligations. See LICENSES/LICENSE.txt and LICENSES/THIRD_PARTY.md.
 Complete source with JUCE 9.0.4 is available at no charge from the same release:
-https://github.com/Shilemir/yurodstvo-holy-fools-pad-engine/releases/tag/v0.8.0-agpl
+https://github.com/Shilemir/yurodstvo-holy-fools-pad-engine/releases/tag/v0.10.1
 See SOURCE-CODE.txt and the Corresponding-Source.zip asset for offline building.
 The unmodified font stays OFL-1.1. Only the official AI PNG is dedicated under
 CC0-1.0, to the extent of the owner's rights; see LICENSES/ILLUSTRATION-NOTICE.txt.
+
+PRAY FOR INSPIRATION randomizes E1-E8, EQ and both waveforms. Master, expression and polyphony are unchanged. After a prayer move each knob/EQ fader through its displayed value to pick it up. Harmony has recurring bell strikes independent of Attack; keyboard glow follows the main voice envelope.

@@ -1,89 +1,83 @@
-# YURODSTVO — Holy Fool's Pad Engine v0.8.0
+# YURODSTVO — Holy Fool's Pad Engine v0.10.1
 
-An experimental synthesizer for ambient music, drones and slowly evolving sound
-textures, inspired by Orthodox iconography and the tradition of holy foolishness.
-This open-source project is under active development and this release
-is marked **Pre-release**.
+Experimental Windows x64 **Pre-release**, succeeding **v0.8.0-agpl**. This release
+publishes the implemented 0.8.1–0.10.0 development work with updated release
+metadata and packaging. Earlier releases remain available. GNU AGPL v3.0 only.
 
-## Features
+## Changes since the previous public release
 
-- Two oscillators, each with Sine, Triangle, Sawtooth and Square waveforms.
-- Selectable 1–16 voice polyphony, default 8; velocity, sustain and slow envelopes.
-- Stereo three-band EQ, octave Shimmer, Reverb and Delay.
-- Independent waveform pads, MiniLab 3 knob/fader mapping, oscillator II Pitch
-  Detune, parameter automation and saved plugin state.
-- Mouse-playable C2–C4 keyboard and embedded official AI illustration/font.
-- Mod Wheel is currently visual/reserved; E7 and E8 are inactive.
+- **PRAY FOR INSPIRATION:** the header button randomizes 13 existing parameters:
+  eight macros, three EQ bands and two independent waveform choices. It preserves
+  Master, Doubt, Faith, polyphony, legacy detune and MIDI routing. Values notify
+  the host and save normally. After a prayer, move each affected absolute MiniLab
+  knob/EQ fader through its displayed value to pick it up without a sudden jump.
+- **Recurring HARMONY:** six-mode, note-tracking resonances per voice now include
+  shaped bell strikes at independent 3–9 second intervals. Bells remain audible
+  with long oscillator Attack. Note Off/pedal release stops new strikes; bounded
+  resonance tails can continue. Voice stealing and Panic retire them safely.
+- **Release Glow:** keyboard illumination follows the actual main voice envelope
+  through Attack, Release, sustain, retriggering and voice retirement. It is not
+  a separate visual decay. Bell/effect tails can outlast the keyboard glow.
+- **MADNESS and FAITH:** E8 uses the full expression depth of the previous local
+  0.9.0 at Hesitation = 127. FAITH (Mod Wheel/CC1), moved by MIDI or mouse, remains
+  visible with no audio effect. Zero Madness is bypass.
+- **Pitch and effects:** DOUBT/Pitch Bend now affects both oscillators globally
+  by ±100 cents while preserving their relative detune. Cathedral Reverb has
+  diffusion and eight delay lines; Deep Ambient Delay has stronger stereo returns
+  and up to 88% feedback. Shimmer, reverb and delay returns operate in parallel.
+- **Interface:** repaired, scale-aware waveform icons; warm brown/olive/gold
+  control states; artistic labels with technical tooltips. The official embedded
+  illustration, Ruslan Display font and 1200 × 780 layout are retained.
+- **Controllers and state:** E7 HARMONY uses User/DAW CC19/116; E8 MADNESS uses
+  CC16/117. The rest of the MiniLab 3 maps are preserved. Existing VST3 identity,
+  parameter IDs and technical host names remain; new macros are appended and
+  old states default them to zero. See README.md, INSPIRATION.md and SACRED-MODULES.md.
 
-## Downloads
+## Downloads and installation
 
-Choose the binary ZIP you need under **Assets**, not the automatic source archive:
+Under Assets choose:
 
-- **YURODSTVO-Holy-Fools-Pad-Engine-v0.8.0-Windows-VST3.zip**
-- **YURODSTVO-Holy-Fools-Pad-Engine-v0.8.0-Windows-Standalone.zip**
+- **YURODSTVO-Holy-Fools-Pad-Engine-v0.10.1-Windows-VST3.zip**
+- **YURODSTVO-Holy-Fools-Pad-Engine-v0.10.1-Windows-Standalone.zip**
 
-SHA-256 files are supplied for checking download integrity.
+Extract everything. For VST3, close the DAW and copy the **entire**
+`YURODSTVO - Holy Fool's Pad Engine.vst3` bundle to
+`C:\Program Files\Common Files\VST3`, keeping all Contents subfolders; restart
+and rescan. Keep only one version in scanned folders. For Standalone, run the
+extracted EXE and select output/MIDI devices in Options / Audio-MIDI Settings.
+Keep the LICENSES folder. No compiler, JUCE install, separate image/font install
+or runtime installer is required. Start at a moderate Master level.
 
-## Installation
+Back up your projects before upgrading: pitch-wheel semantics and effects have
+intentionally changed since 0.8.0. Stable IDs preserve parameter addressing;
+they do not promise that earlier projects sound identical after these DSP changes.
 
-**VST3:** extract the complete archive, close your DAW and copy the entire
-`YURODSTVO - Holy Fool's Pad Engine.vst3` folder into
-`C:\Program Files\Common Files\VST3`. Preserve all Contents subfolders. Restart
-and rescan VST3 plugins, then load the instrument on a MIDI/instrument track.
-Do not scan multiple versions of this same plugin at once.
+## Source and licences
 
-**Standalone:** extract the archive, run the EXE and, if needed, select audio/MIDI
-in Options / Audio-MIDI Settings. Keep the LICENSES folder with the app.
+The application remains **AGPL-3.0-only**, using JUCE 9.0.4's AGPLv3 option.
+Commercial use is permitted under the applicable licences. Preserve notices and
+provide complete Corresponding Source when conveying binaries; modified covered
+works also have the applicable AGPL sections 5 and 13 obligations.
 
-No JUCE, Visual Studio, compilation or separate image/font installation is needed.
-Start with a moderate Master level. See the included English README for controls.
+The **YURODSTVO-Holy-Fools-Pad-Engine-v0.10.1-Corresponding-Source.zip** asset
+contains the exact project revision, scripts, assets and official JUCE 9.0.4
+source (commit `3fb5cbc0340758596dac39f7c8de47d562b4896e`) for offline builds.
+All three archives have SHA-256 sidecars. Automatic GitHub source archives contain
+the project only; CMake can fetch pinned JUCE or use JUCE_PATH. See BUILDING.md.
 
-## MIDI
+Third-party licences/notices remain intact, including MIT VST3 SDK and OFL font.
+Only the owner's applicable rights in the official AI PNG are dedicated under
+CC0-1.0, with its documented AI/provenance limitations. See LICENSE.txt,
+COPYRIGHT.md, THIRD_PARTY.md and assets/ILLUSTRATION-NOTICE.txt.
 
-Both absolute MiniLab 3 User and DAW CC maps are supported. P1–P4 select oscillator I
-waveforms; P5–P8 select oscillator II waveforms. Pitch Bend controls oscillator II
-detune, not global pitch. The DAW must forward notes, CC and Pitch Bend. Mouse
-notes use the same synthesis engine but are not emitted as MIDI output for clips.
+## Validation and known limits
 
-## Requirements and validation
+The publication process builds both formats from one committed source revision,
+runs CTest and the extracted VST3 checks, validates x64/version/imports and exact
+embedded PNG/font bytes, and verifies ZIP contents and public download hashes.
+Measured results are appended to the published release notes after validation.
 
-Windows x64. VST3 requires a 64-bit VST3 instrument host; Standalone requires a
-working audio output. Built/tested on Windows 11; the owner reports previous
-Ableton Live 11 operation. Other computers, Windows 10/ARM and all other DAWs
-have not been independently validated. Binaries are unsigned.
-
-361 automated checks passed on the AGPL clean build and again on the VST3 extracted
-from its ZIP. The historical 0.6 comparison is skipped in public builds (the earlier private build passed 362). The previous pre-conversion Standalone process started and reported its window;
-full interactive/audio smoke testing was not completed. MSVC runtime is statically
-linked; normal Windows system libraries are required. No runtime installer is bundled.
-
-## Open-source conversion: v0.8.0-agpl
-
-The original application is now **GNU AGPL version 3 only (AGPL-3.0-only)**,
-including the original 0.8.0 code. You may use, study, modify and redistribute it,
-including commercially, under that licence. JUCE 9.0.4 uses its AGPLv3 option;
-previous Starter/source-available notices are superseded for this distribution.
-Third-party copyrights, SDK licences and the font's OFL-1.1 remain intact.
-
-This is a licensing, build-portability and documentation revision of application
-**0.8.0**. The original v0.8.0 tag is preserved; **v0.8.0-agpl** identifies the
-open-source source revision. DSP, UI, plugin identity and MIDI mappings are
-unchanged. Windows binaries have been rebuilt from the open-source revision.
-ZIPs and SHA-256 files have been regenerated with complete legal/source notices.
-
-Download **YURODSTVO-Holy-Fools-Pad-Engine-v0.8.0-AGPL-Corresponding-Source.zip**
-and its checksum from Assets for the complete Corresponding Source, including
-unmodified JUCE 9.0.4 and its vendored dependencies. It builds offline with the
-tools in BUILDING.md. GitHub's automatic source archives contain the project
-only; their CMake configuration fetches pinned JUCE or accepts JUCE_PATH.
-
-When conveying binaries, provide complete Corresponding Source under AGPLv3
-section 6, preserve notices and identify modifications. Modified covered works
-must remain AGPLv3; modified versions used for remote network interaction must
-provide the section 13 source offer. There is no noncommercial restriction.
-Contributions are welcome. See LICENSE.txt, COPYRIGHT.md and THIRD_PARTY.md.
-
-Only the owner's applicable rights in assets/yurodstvo_icon.png are dedicated
-under CC0-1.0. This AI illustration carries no claim of exclusive copyright or
-guaranteed third-party-rights clearance. Font, libraries and the full interface
-screenshot are excluded from CC0; see assets/ILLUSTRATION-NOTICE.txt.
+Unsigned experimental binaries, tested on the development Windows x64 machine
+with an offline JUCE VST3 host. No new Ableton, physical MiniLab, listening,
+other-PC, Windows 10/ARM or all-DAW validation is claimed. Listen and check project
+recall in your own host. High macro/EQ settings can engage output protection.

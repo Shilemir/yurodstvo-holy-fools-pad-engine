@@ -1,69 +1,28 @@
-# Release validation — 0.8.0
+# Release validation — 0.10.1
 
-AGPL distribution validation, 2026-10-27. A fresh Windows x64 Release build was made with official JUCE 9.0.4 and Visual Studio
-2026/MSVC 19.51 in a new build directory. Application DSP, MIDI behaviour and
-plugin identity were not changed for publication.
+Both Windows x64 Release formats are built from the same committed public tree
+with official JUCE 9.0.4, Visual Studio 2026/MSVC and the static MSVC runtime.
+The release tag identifies that exact build commit. The private development
+history and historical reference artwork are excluded from public source.
 
-## Results
+Publication checks:
 
-- Standalone EXE, VST3 and technical-test targets built successfully.
-- Clean-build CTest: **361 checks passed**, zero failures.
-- The VST3 ZIP was extracted into a new directory and that extracted plugin
-  passed the same **361 checks**, zero failures.
-- Both ZIPs preserve every staged file byte-for-byte; SHA-256 sidecars accompany
-  the archives. ZIP paths use forward slashes and retain the complete VST3 tree.
-- PE headers identify AMD64/x64. ProductName and ProductVersion are correct.
-  VST3 component/controller CIDs match earlier versions.
-- Byte-for-byte binary checks find the complete official PNG and Ruslan Display
-  font in both EXE and VST3. Assets are embedded, without external file lookups.
-- Official builds use `/MT` (static MSVC runtime). `dumpbin /DEPENDENTS` finds
-  normal Windows libraries and no external VCRUNTIME/MSVCP runtime DLLs.
-- No application source, PDB, OBJ, LIB, EXP, compiler, JUCE checkout, driver or
-  runtime installer is included in either binary ZIP. Licence notices are included.
-- The earlier pre-conversion Standalone process started and exposed a correctly titled window. No new interactive/audio launch test is claimed for this rebuild.
-  The subsequent visual/interactivity smoke test was not completed. This is not
-  a claim of successful audio-device setup or listening validation.
-- The repository screenshot is rendered from the real JUCE editor, not a mockup.
+- Clean Standalone, VST3 and test-target compilation, CTest and extracted-VST3 tests.
+- Inspiration's 13 randomized parameters, preserved controls, state and pickup.
+- Recurring Harmony, note-off/sustain retirement and real-envelope Release Glow.
+- Madness depth, Faith's zero audio effect, waveform paths, MIDI and state tests.
+- x64 PE metadata and unchanged VST3 component/controller identity.
+- Complete embedded official PNG/font and required third-party/legal notices.
+- Complete VST3 bundle, no debug/build files, ZIP roundtrip and SHA-256 sidecars.
+- Complete Corresponding Source archive from the same commit with pinned JUCE.
+- Uploaded tag/commit, anonymous asset downloads and SHA-256 verification.
 
-## Test coverage
+The published release notes record measured results from the new build. Earlier
+local development results remain in TEST_REPORT.md, explicitly as historical
+runs. Optional private comparison binaries are never needed by public builders;
+when available they may be used in an additional local regression run and are
+never included in the source or binary downloads.
 
-Band-limited waveforms, waveform switching, oscillator mix/detune, velocity,
-Attack/Release, 1–16 voice management, sustain, stealing, stereo EQ response and
-smoothing, octave Shimmer/feedback decay, Reverb/Delay, Master and Panic, level
-comparison, MiniLab User/DAW CC routing, pad note/CC selection, parameter/state
-roundtrips and actual VST3 hosting are covered.
-
-The on-screen keyboard checks include click/hold/drag/release, black-key hit tests,
-focus/visibility/close handling, independent mouse/MIDI ownership of a shared note,
-source-aware stealing, transient-state cancellation, bounded-queue overflow and
-concurrent producer/consumer release safety. These are automated JUCE callbacks
-and offline audio tests, not physical MiniLab or Ableton interaction tests.
-
-The level-comparison check uses the retained private 0.6 binary when available.
-This clean public build skipped that one comparison (361 checks versus the earlier 362); the old
-binary is not needed to build or use the current instrument.
-
-## Limits
-
-Tests ran on the development Windows 11 x64 computer and a local JUCE VST3 host.
-No second computer, Windows 10/ARM, broad DAW compatibility test, physical MiniLab
-session or full listening evaluation of this clean distribution is claimed.
-The owner reports previous Ableton Live 11 use. Binaries are unsigned.
-Normal Windows system libraries and a working audio setup are still required.
-
-## Source/privacy review
-
-The public snapshot includes the current Source, Tests, CMake/build scripts,
-English documentation, embedded font with OFL and the owner-authorized AI artwork.
-It excludes previous reference images, build outputs, local logs/settings,
-attachments, and the original `.git` directory. Original development history is
-retained locally without rewriting commits.
-
-A pattern scan of the private text history found no matching GitHub/API/private-key
-patterns; the public snapshot is scanned separately before publication. Such scans
-are not a mathematical guarantee that every possible secret format is detectable.
-The application is now AGPL-3.0-only under the owner's grant. See LICENSE.txt,
-THIRD_PARTY.md and assets/ILLUSTRATION-NOTICE.txt.
-Portable CMake configuration without JUCE_PATH also succeeded, fetching and
-verifying the pinned official JUCE revision. Full Corresponding Source is
-provided separately from the binary ZIPs, including JUCE and all project files.
+No new Ableton, physical MiniLab, audio listening, other-PC, Windows 10/ARM or
+broad DAW test is claimed. Offline automated host/state tests are not a substitute
+for listening or checking recall in a user's own DAW. Binaries are unsigned.

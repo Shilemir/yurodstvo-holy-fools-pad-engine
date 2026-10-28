@@ -53,11 +53,18 @@ public:
     std::atomic<int> lastControl { -1 }, lastControlValue { 0 }, lastControlChannel { 0 }, controlHits { 0 };
     std::atomic<int> lastControlCC { -1 };
     std::array<std::atomic<bool>, 128> notes {};
+    std::array<std::atomic<float>,128> noteLevels {};
+    void randomizeSound(); // message thread only; changes existing host parameters
     std::atomic<bool> panicRequested { false };
     int polyphonyLimit() const { return juce::roundToInt(polyphonyRaw->load()); }
     void setMouseNote(int note) { mouseInput.post(note >= 48 && note <= 72 ? note : -1); }
     std::atomic<unsigned> mouseEpoch {0};
 private:
+    juce::Random inspirationRandom;
+    std::array<std::atomic<bool>,12> pickupArmed {};
+    std::array<int,12> previousControl {};
+    juce::RangedAudioParameter* controlParameter(int control) const;
+    bool waitForPickup(int control,int value);
     static juce::AudioProcessorValueTreeState::ParameterLayout makeParameters();
     std::array<juce::RangedAudioParameter*, yuro::parameterCount> parameterObjects {};
     std::array<std::atomic<float>*, yuro::parameterCount> raw {};
@@ -84,6 +91,10 @@ private:
     std::atomic<float>* shimmerRaw = nullptr;
     std::atomic<float> pendingShimmer { -1 };
     std::atomic<float>* polyphonyRaw = nullptr;
+    std::array<juce::RangedAudioParameter*,2> sacredParameters {};
+    std::array<std::atomic<float>*,2> sacredRaw {};
+    std::array<std::atomic<float>,2> pendingSacred;
+    void updateSacredTargets();
     MouseNoteInput mouseInput;
     int audioMouseNote = -1;
     std::atomic<bool> cancelMouseRequested {false};

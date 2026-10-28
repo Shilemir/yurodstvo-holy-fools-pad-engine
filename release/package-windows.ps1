@@ -22,7 +22,7 @@ $dumpbin = Join-Path $toolset.FullName 'bin\Hostx64\x64\dumpbin.exe'
 $dependencies = & $dumpbin /DEPENDENTS $binary | Out-String
 if ($LASTEXITCODE) { throw 'Dependency inspection failed.' }
 if ($dependencies -match '(?i)\b(?:VCRUNTIME|MSVCP|MSVCR|CONCRT|ucrtbased)[^\s]*\.dll') { throw 'Unexpected external MSVC runtime dependency.' }
-$destination = Join-Path $projectRoot "artifacts\distribution\$version-agpl"
+$destination = Join-Path $projectRoot "artifacts\distribution\$version"
 $runId = [guid]::NewGuid().ToString('N').Substring(0,12)
 $stage = Join-Path $destination "staging-$runId"
 $licences = Join-Path $stage 'LICENSES'

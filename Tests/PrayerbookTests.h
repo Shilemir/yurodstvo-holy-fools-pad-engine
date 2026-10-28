@@ -107,7 +107,7 @@ inline void runPrayerbookTests()
             if (i > sr * 0.1 && i < sr) tail += out[0] * out[0] + out[1] * out[1];
             if (i > sr * 11) lateTail += out[0] * out[0] + out[1] * out[1];
         }
-        waveCheck(tail > 0.00001 && lateTail < tail * 0.01, "Reverb creates a diffuse tail which decays safely");
+        waveCheck(tail > 0.00001 && lateTail > tail * 0.0001 && lateTail < tail, "Cathedral reverb remains audible after eleven seconds and decays safely");
         fx.setTargets(1, 1, 1);
         bool bounded = true; float previous = 0, maxStep = 0;
         for (int i = 0; i < static_cast<int>(sr * 2); ++i)

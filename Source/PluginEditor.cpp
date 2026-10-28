@@ -137,10 +137,11 @@ void PlayableKeyboard::paint(juce::Graphics& g)
     auto draw=[&](int note)
     {
         const auto bounds=keyBounds(note);
-        const bool active=processor.notes[static_cast<size_t>(note)].load()||note==held;
+        const float level=juce::jlimit(0.0f,1.0f,processor.noteLevels[static_cast<size_t>(note)].load(std::memory_order_relaxed));
+        const bool active=level>.5f;
         auto colour=isBlackKey(note)?background:juce::Colour(0xff50513a);
-        if(active) colour=isBlackKey(note)?accent.darker():accent;
-        else if(note==hover) colour=colour.interpolatedWith(accent,0.20f);
+        colour=colour.interpolatedWith(isBlackKey(note)?accent.darker():accent,level);
+        if(note==hover) colour=colour.interpolatedWith(accent,0.12f);
         g.setColour(colour); g.fillRoundedRectangle(bounds,2);
         if(note==held) {g.setColour(text.withAlpha(0.75f));g.drawRoundedRectangle(bounds.reduced(2),2,0.8f);}
         if(note%12==0) readout(g,juce::MidiMessage::getMidiNoteName(note,true,true,3),
@@ -148,6 +149,47 @@ void PlayableKeyboard::paint(juce::Graphics& g)
     };
     for(int n=48;n<=72;++n) if(!isBlackKey(n)) draw(n);
     for(int n=48;n<=72;++n) if(isBlackKey(n)) draw(n);
+}
+DroneLookAndFeel::DroneLookAndFeel()
+{
+    setColour(juce::TextButton::buttonColourId,juce::Colour(0xff383323));
+    setColour(juce::TextButton::buttonOnColourId,juce::Colour(0xff786037));
+    setColour(juce::TextButton::textColourOffId,text);
+    setColour(juce::TextButton::textColourOnId,text);
+    setColour(juce::Slider::thumbColourId,accent);
+    setColour(juce::Slider::trackColourId,border);
+    setColour(juce::Slider::backgroundColourId,background);
+    setColour(juce::TextEditor::highlightColourId,accent.withAlpha(.35f));
+    setColour(juce::TextEditor::highlightedTextColourId,text);
+    setColour(juce::TextEditor::focusedOutlineColourId,accent);
+    setColour(juce::TextEditor::outlineColourId,border);
+    setColour(juce::TextEditor::backgroundColourId,background);
+    setColour(juce::TextEditor::textColourId,text);
+    setColour(juce::CaretComponent::caretColourId,accent);
+    setColour(juce::PopupMenu::backgroundColourId,background);
+    setColour(juce::PopupMenu::textColourId,text);
+    setColour(juce::PopupMenu::highlightedBackgroundColourId,juce::Colour(0xff786037));
+    setColour(juce::PopupMenu::highlightedTextColourId,text);
+    setColour(juce::TooltipWindow::backgroundColourId,juce::Colour(0xff302e23));
+    setColour(juce::TooltipWindow::textColourId,text);
+    setColour(juce::TooltipWindow::outlineColourId,border);
+}
+void DroneLookAndFeel::drawButtonBackground(juce::Graphics& g,juce::Button& button,const juce::Colour&,bool hover,bool down)
+{
+    auto fill=juce::Colour(0xff383323);
+    if(button.isEnabled())
+        fill=down || button.getToggleState() ? juce::Colour(0xff786037) : hover ? juce::Colour(0xff555039) : fill;
+    else fill=juce::Colour(0xff333226);
+    const auto bounds=button.getLocalBounds().toFloat().reduced(.5f);
+    g.setColour(fill);g.fillRoundedRectangle(bounds,3);
+    g.setColour(button.isEnabled() ? (hover || down ? accent : border) : border.withAlpha(.4f));
+    g.drawRoundedRectangle(bounds,3,1);
+}
+void DroneLookAndFeel::drawButtonText(juce::Graphics& g,juce::TextButton& button,bool,bool)
+{
+    g.setColour(button.isEnabled() ? button.findColour(juce::TextButton::textColourOffId) : muted.withAlpha(.5f));
+    g.setFont(getTextButtonFont(button,button.getHeight()));
+    g.drawText(button.getButtonText(),button.getLocalBounds().reduced(3),juce::Justification::centred);
 }
 juce::Font DroneLookAndFeel::getTextButtonFont(juce::TextButton& button, int)
 {
@@ -203,6 +245,34 @@ void DroneLookAndFeel::drawLinearSlider(juce::Graphics& g, int x, int y, int w, 
     }
 }
 
+juce::Path WavePad::waveformPath(int shape,juce::Rectangle<float> area)
+{
+    juce::Path wave;
+    auto point=[&](float x,float y,bool start=false)
+    {
+        const float px=area.getX()+x*area.getWidth(),py=area.getY()+(1-y)*area.getHeight();
+        if(start) wave.startNewSubPath(px,py);else wave.lineTo(px,py);
+    };
+    if(shape==0)
+    {
+        for(int i=0;i<=128;++i)
+        {const float x=static_cast<float>(i)/128;point(x,.5f+.5f*std::sin(x*4*juce::MathConstants<float>::pi),i==0);}
+    }
+    else if(shape==1)
+    {
+        point(0,.5f,true);point(.125f,1);point(.375f,0);point(.625f,1);point(.875f,0);point(1,.5f);
+    }
+    else if(shape==2)
+    {
+        point(0,0,true);point(.5f,1);point(.5f,0);point(1,1);
+    }
+    else
+    {
+        point(0,1,true);point(.25f,1);point(.25f,0);point(.5f,0);
+        point(.5f,1);point(.75f,1);point(.75f,0);point(1,0);
+    }
+    return wave;
+}
 WavePad::WavePad(int number) : Button("Pad " + juce::String(number + 1)), padNumber(number)
 {
     setButtonText("P" + juce::String(number + 1) + " / " + yuro::waveformNames[static_cast<size_t>(number % 4)]);
@@ -217,23 +287,7 @@ void WavePad::paintButton(juce::Graphics& g, bool highlighted, bool down)
     g.setColour(selected ? accent : border); g.drawRoundedRectangle(bounds, 4, selected ? 1.7f : 1);
     readout(g, "P" + juce::String(padNumber + 1), 8, 4, 25, 17, 11, selected ? ::text : muted);
     label(g, juce::String(yuro::waveformNames[static_cast<size_t>(padNumber % 4)]).toUpperCase(), 7, 21, getWidth() - 14, 18, 13, ::text, juce::Justification::centred);
-    juce::Path wave;
-    for (int i = 0; i <= 80; ++i)
-    {
-        const float phase = static_cast<float>(i) / 40;
-        const float p = phase - std::floor(phase);
-        float value = 0;
-        switch (padNumber % 4)
-        {
-            case 0: value = std::sin(phase * juce::MathConstants<float>::twoPi); break;
-            case 1: value = (2 / juce::MathConstants<float>::pi) * std::asin(std::sin(phase * juce::MathConstants<float>::twoPi)); break;
-            case 2: value = 2 * p - 1; break;
-            case 3: value = p < 0.5f ? 0.85f : -0.85f; break;
-        }
-        const float x = 10 + static_cast<float>(getWidth() - 20) * i / 80;
-        const float y = 53 - value * 9;
-        if (i == 0) wave.startNewSubPath(x, y); else wave.lineTo(x, y);
-    }
+    const auto wave=waveformPath(padNumber%4,juce::Rectangle<float>(10,getHeight()*.62f,getWidth()-20.0f,getHeight()*.25f));
     g.setColour(selected ? accent.brighter(0.25f) : muted); g.strokePath(wave, juce::PathStrokeType(1.4f));
     if (selected) { g.setColour(accent); g.fillEllipse(static_cast<float>(getWidth() - 14), 8, 4, 4); }
 }
@@ -241,26 +295,30 @@ void WavePad::paintButton(juce::Graphics& g, bool highlighted, bool down)
 DroneEditor::DroneEditor(DroneProcessor& p) : AudioProcessorEditor(p), processor(p), panelBackdrop(makeBackdrop()), keyboard(p)
 {
     setLookAndFeel(&look); addAndMakeVisible(keyboard);
+    inspiration.setName("Pray for Inspiration");
+    inspiration.setTooltip("Randomize E1-E8, EQ and waveforms. Absolute controls pick up the new values. Master, expression and polyphony stay unchanged.");
+    inspiration.onClick=[this]{processor.randomizeSound();inspirationFlash=6;inspiration.setToggleState(true,juce::dontSendNotification);timerCallback();};
+    addAndMakeVisible(inspiration);
     for (size_t i = 0; i < knobs.size(); ++i)
     {
         auto& k = knobs[i];
         k.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-        k.setTextBoxStyle(i < 6 ? juce::Slider::TextBoxBelow : juce::Slider::NoTextBox, false, 100, 22);
+        k.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 100, 22);
         k.setColour(juce::Slider::textBoxTextColourId, text); k.setColour(juce::Slider::textBoxBackgroundColourId, background);
-        k.setColour(juce::Slider::textBoxOutlineColourId, border); k.setEnabled(i < 6);
+        k.setColour(juce::Slider::textBoxOutlineColourId, border); k.setEnabled(true);
         k.setName("Encoder " + juce::String(static_cast<int>(i + 1)));
-        const int controller = i < 4 ? yuro::midiCC[i] : (i == 4 ? 93 : 18);
-        k.setTooltip(i < 6 ? "MiniLab 3: User CC " + juce::String(controller) + " / DAW CC "
-            + juce::String(yuro::dawControlCC[i]) + ". Absolute 0-127. Drag or enter a value." : "Reserved for a future version");
+        constexpr std::array<const char*,8> explanations { "Octave Shimmer Reverb", "Oscillator Mix", "Amplitude Attack Time", "Amplitude Release Time", "Cathedral Reverb", "Deep Ambient Delay", "Sacred Resonance / note-tracking modal resonators", "Controlled Instability / smooth organic drift" };
+        const size_t control=i<6 ? i : i+4;
+        k.setTooltip(juce::String(explanations[i])+". MiniLab User CC "+juce::String(yuro::controlCC[control])+" / DAW CC "+juce::String(yuro::dawControlCC[control])+". Absolute 0-127.");
         addAndMakeVisible(k);
-        if (i < 6)
+        if (i < 8)
         {
-            const auto attachment = i < 4 ? i : i + 1;
-            const char* id = i == 0 ? "shimmer" : i < 4 ? yuro::parameterIds[i] : (i == 4 ? "reverb" : "delay");
+            const auto attachment = i < 4 ? i : i < 6 ? i + 1 : i + 5;
+            const char* id = i == 0 ? "shimmer" : i < 4 ? yuro::parameterIds[i] : i == 4 ? "reverb" : i == 5 ? "delay" : i == 6 ? "harmony" : "madness";
             attachments[attachment] = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(p.parameters, id, k);
             k.setNumDecimalPlacesToDisplay(3);
             k.setTextValueSuffix(i == 2 || i == 3 ? " s" : "");
-            if (i == 0)
+            if (i == 0 || i >= 6)
             {
                 k.textFromValueFunction = [](double v) { return juce::String(v * 100, 0) + "%"; };
                 k.valueFromTextFunction = [](const juce::String& s) { return s.getDoubleValue() / 100; };
@@ -275,7 +333,8 @@ DroneEditor::DroneEditor(DroneProcessor& p) : AudioProcessorEditor(p), processor
         f.setColour(juce::Slider::textBoxTextColourId, text); f.setColour(juce::Slider::textBoxBackgroundColourId, background);
         f.setColour(juce::Slider::textBoxOutlineColourId, border); f.setEnabled(true);
         f.setName("Fader " + juce::String(static_cast<int>(i + 1)));
-        f.setTooltip(i == 0 ? "Master Volume / User CC 82 / DAW CC 14" : "Pre-FX EQ / +/-12 dB / double-click for 0 dB"); addAndMakeVisible(f);
+        constexpr std::array<const char*,4> explanations { "Master Volume", "Low Frequency EQ Gain / 120 Hz low shelf", "Midrange EQ Gain / 1 kHz bell", "High Frequency EQ Gain / 6 kHz high shelf" };
+        f.setTooltip(juce::String(explanations[i])+". MiniLab User CC "+juce::String(yuro::controlCC[i+6])+" / DAW CC "+juce::String(yuro::dawControlCC[i+6])+". EQ: +/-12 dB, double-click for 0 dB."); addAndMakeVisible(f);
     }
     attachments[4] = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(p.parameters, "master", faders[0]);
     faders[0].setNumDecimalPlacesToDisplay(3);
@@ -301,11 +360,11 @@ DroneEditor::DroneEditor(DroneProcessor& p) : AudioProcessorEditor(p), processor
         wheel->setScrollWheelEnabled(false); addAndMakeVisible(*wheel);
     }
     pitchWheel.setRange(-100, 100, 0.001); pitchWheel.setDoubleClickReturnValue(true, 0);
-    pitchWheel.setTooltip("Pitch Bend: oscillator II detune +/-100 cents. Release to centre. Legacy Detune automation remains compatible.");
+    pitchWheel.setTooltip("DOUBT: Global Pitch Bend, both oscillators +/-100 cents. Release to centre. Relative detune is preserved.");
     pitchWheel.onValueChange = [this] { processor.setPitchFromMouse(static_cast<float>(pitchWheel.getValue())); };
     pitchWheel.onDragStart = [this] { pitchDragging = true; };
     pitchWheel.onDragEnd = [this] { pitchDragging = false; processor.setPitchFromMouse(0); pitchWheel.setValue(0, juce::dontSendNotification); };
-    modWheel.setRange(0, 127, 1); modWheel.setTooltip("CC1 Modulation / Reserved: no audio destination in version 0.6.");
+    modWheel.setRange(0, 127, 1); modWheel.setTooltip("FAITH / MIDI CC1.");
     modWheel.onValueChange = [this] { processor.setModulation(juce::roundToInt(modWheel.getValue())); };
     panic.onClick = [this] { processor.panicRequested.store(true); };
     panic.setColour(juce::TextButton::buttonColourId, background); panic.setColour(juce::TextButton::textColourOffId, accent);
@@ -322,8 +381,9 @@ DroneEditor::DroneEditor(DroneProcessor& p) : AudioProcessorEditor(p), processor
 DroneEditor::~DroneEditor() { stopTimer(); setLookAndFeel(nullptr); }
 void DroneEditor::resized()
 {
+    inspiration.setBounds(405,25,304,36);
     for (size_t i = 0; i < knobs.size(); ++i)
-        knobs[i].setBounds(knobX[i % 4], 156 + static_cast<int>(i / 4) * 164, 112, i < 6 ? 107 : 85);
+        knobs[i].setBounds(knobX[i % 4], 156 + static_cast<int>(i / 4) * 164, 112, 107);
     for (size_t i = 0; i < faders.size(); ++i) faders[i].setBounds(956 + static_cast<int>(i) * 56, 171, 54, 239);
     for (size_t i = 0; i < pads.size(); ++i)
         pads[i]->setBounds((i < 4 ? 250 : 700) + static_cast<int>(i % 4) * 106, 468, 96, 72);
@@ -333,6 +393,7 @@ void DroneEditor::resized()
 }
 void DroneEditor::timerCallback()
 {
+    if(inspirationFlash>0 && --inspirationFlash==0)inspiration.setToggleState(false,juce::dontSendNotification);
     meter = juce::jmax(processor.peak.load(), meter * 0.90f);
     for (size_t i = 0; i < pads.size(); ++i)
         pads[i]->setToggleState(processor.currentWaveform(static_cast<int>(i / 4)) == static_cast<int>(i % 4), juce::dontSendNotification);
@@ -351,7 +412,7 @@ void DroneEditor::paint(juce::Graphics& g)
     label(g, "Holy Fool's Pad Engine", 32, 55, 670, 28, 20, accent);
     g.setColour(accent.withAlpha(0.3f)); g.drawLine(705, 69, 712, 69, 0.8f); diamond(g, 720, 69, 4);
     label(g, "VI / TWO OSCILLATORS / FOUR FORMS", 765, 22, 405, 27, 15, muted, juce::Justification::centredRight);
-    readout(g, "16 VOICES / SHIMMER / EQ / FX / v0.8.0", 710, 53, 460, 23, 11, muted, juce::Justification::centredRight);
+    readout(g, "16 VOICES / SACRED RESONANCE / v0.10.1", 710, 53, 460, 23, 11, muted, juce::Justification::centredRight);
     label(g, "ENGINE / MONITOR", 38, 122, 186, 23, 15, text);
     g.setColour(juce::Colour(0xff282e20)); g.fillRoundedRectangle(38, 157, 186, 206, 3);
     g.setColour(border); g.drawRoundedRectangle(38, 157, 186, 206, 3, 0.7f);
@@ -362,39 +423,40 @@ void DroneEditor::paint(juce::Graphics& g)
     readout(g, "VOICES " + juce::String(processor.voices.load()) + " / " + juce::String(processor.polyphonyLimit()), 49, 255, 165, 20, 12, muted);
     const int type = processor.lastMidiType.load();
     const auto channel = juce::String(processor.lastMidiChannel.load());
-    const juce::String midi = type == 0 ? "MIDI: WAITING" : type == 4 ? "PITCH " + juce::String(processor.pitchValue.load()) : type == 3
+    const juce::String midi = type == 0 ? "MIDI: WAITING" : type == 4 ? "DOUBT " + juce::String(processor.pitchValue.load()) : type == 3
         ? "CC" + juce::String(processor.lastCC.load()) + ":" + juce::String(processor.lastCCValue.load()) + " CH" + channel
         : juce::String(type == 1 ? "ON " : "OFF ") + "N" + juce::String(processor.lastNote.load()) + " CH" + channel;
     readout(g, midi, 49, 284, 165, 20, 11, accent);
     readout(g, "OUT " + juce::String(juce::Decibels::gainToDecibels(meter, -100.0f), 1) + " dBFS", 49, 315, 165, 20, 12, text);
-    readout(g, "DETUNE " + juce::String(processor.currentDetune(), 1) + " ct", 49, 340, 165, 17, 11, accent);
+    readout(g, "DOUBT " + juce::String(processor.currentDetune(), 1) + " ct", 49, 340, 165, 17, 11, accent);
     g.setColour(border); g.fillRect(38, 381, 186, 5);
     g.setColour(accent); g.fillRect(38, 381, juce::roundToInt(186 * juce::jlimit(0.0f, 1.0f, meter)), 5);
     label(g, "POLYPHONY", 38, 407, 186, 23, 15, accent, juce::Justification::centred);
-    constexpr std::array<const char*, 6> names { "SHIMMER", "OSC MIX", "ATTACK", "RELEASE", "REVERB", "DELAY" };
+    constexpr std::array<const char*, 8> names { "DEVOTION", "DUALISM", "PATIENCE", "REMEMBRANCE", "SANCTUARY", "SOLITUDE", "HARMONY", "MADNESS" };
     for (int i = 0; i < 8; ++i)
     {
         const int x = knobX[static_cast<size_t>(i % 4)], y = 132 + (i / 4) * 164;
-        g.setColour(background.withAlpha(i < 6 ? 0.66f : 0.45f));
-        g.fillRoundedRectangle(static_cast<float>(x - 5), static_cast<float>(y - 2), 122, i < 6 ? 138.0f : 128.0f, 5);
-        label(g, "E" + juce::String(i + 1) + " / " + (i < 6 ? names[static_cast<size_t>(i)] : "RESERVED"), x, y, 112, 22, 14, i < 6 ? text : muted, juce::Justification::centred);
-        if (i >= 6) readout(g, "INACTIVE", x, y + 111, 112, 18, 10, muted, juce::Justification::centred);
+        g.setColour(background.withAlpha(0.66f));
+        g.fillRoundedRectangle(static_cast<float>(x - 5), static_cast<float>(y - 2), 122, 138.0f, 5);
+        readout(g, "E" + juce::String(i+1), x, y-12, 112, 12, 10, accent, juce::Justification::centred);
+        label(g, names[static_cast<size_t>(i)], x-5, y, 122, 22, 15, text, juce::Justification::centred);
+
     }
     g.setColour(background.withAlpha(0.67f)); g.fillRoundedRectangle(952, 130, 222, 294, 5);
     for (int i = 0; i < 4; ++i)
     {
         const int x = 956 + i * 56;
-        constexpr std::array<const char*, 4> faderNames { "MASTER", "BASS", "MID", "TREBLE" };
+        constexpr std::array<const char*, 4> faderNames { "MASTER", "HELL", "EARTH", "HEAVEN" };
         label(g, "F" + juce::String(i + 1), x, 133, 54, 20, 15, accent, juce::Justification::centred);
         label(g, faderNames[static_cast<size_t>(i)], x, 154, 54, 16, 12, muted, juce::Justification::centred);
     }
     label(g, "OSCILLATOR I - WAVEFORM", 250, 438, 414, 23, 16, accent);
     label(g, "OSCILLATOR II - WAVEFORM", 700, 438, 414, 23, 16, accent);
-    label(g, "PITCH", 26, 583, 67, 22, 14, accent, juce::Justification::centred);
-    label(g, "MOD", 100, 583, 67, 22, 14, accent, juce::Justification::centred);
+    label(g, "DOUBT", 26, 583, 67, 22, 14, accent, juce::Justification::centred);
+    label(g, "FAITH", 100, 583, 67, 22, 14, accent, juce::Justification::centred);
     readout(g, juce::String(processor.currentDetune(), 1) + " ct", 22, 696, 75, 18, 10, text, juce::Justification::centred);
     readout(g, juce::String(processor.modulation.load()), 100, 696, 67, 18, 11, text, juce::Justification::centred);
-    readout(g, "RESERVED", 89, 713, 90, 14, 9, muted, juce::Justification::centred);
+
     label(g, "KEYBOARD / C2 - C4", 210, 583, 340, 22, 15, muted);
     const auto quote = footerQuote();
     const auto split = quote.indexOf(juce::String::fromUTF8(u8" тот будь"));
